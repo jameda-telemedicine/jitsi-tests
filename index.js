@@ -12,18 +12,11 @@ const config = {
   accessKey: process.env.SERVER_ACCESSKEY,
 };
 
-const beforeParam = (params) => {
-  if (!params || params === "") {
-    return "?";
-  }
-  return "&";
-};
-
 const buildJitsiUrl = (config) => {
   const base = config.base.endsWith("/") ? config.base : `${config.base}/`;
-  let params = "";
+  let params = "?analytics.disabled=true";
   if (config.jwt && config.jwt !== "") {
-    params = `${beforeParam(params)}jwt=${config.jwt}`;
+    params = `&jwt=${config.jwt}`;
   }
   return `${base}${config.room}${params}`;
 };
@@ -124,5 +117,3 @@ const runBrowserCombination = async (browser1, browser2) => {
   await runBrowserCombination("firefox", "chrome");
   await runBrowserCombination("firefox", "firefox");
 })();
-
-// await driver.findElement(By.name("displayName")).sendKeys("test", Key.RETURN);
