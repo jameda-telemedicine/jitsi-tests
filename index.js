@@ -1,5 +1,5 @@
 require("dotenv").config();
-const { Builder, By, Key } = require("selenium-webdriver");
+const { By } = require("selenium-webdriver");
 const { Chrome, Firefox } = require("./browsers");
 
 const config = {
@@ -11,8 +11,6 @@ const config = {
   username: process.env.SERVER_USERNAME,
   accessKey: process.env.SERVER_ACCESSKEY,
 };
-
-console.log(config);
 
 const beforeParam = (params) => {
   if (!params || params === "") {
@@ -51,15 +49,37 @@ const browserFlow = async (browser) => {
   try {
     await driver.get(jitsiUrl);
 
-    await new Promise((r) => setTimeout(r, 4000));
-
     // print current url into the console
-    const currentUrl = await driver.getCurrentUrl();
+    let currentUrl = await driver.getCurrentUrl();
+    if (config.jwt && config.jwt !== "") {
+      currentUrl = `${currentUrl}`.replace(`jwt=${config.jwt}`, "jwt=********");
+    }
     console.log("├ opened URL: ", currentUrl);
 
     await driver.executeScript(
       "APP.store.dispatch({ type: 'SET_TOOLBOX_ALWAYS_VISIBLE', alwaysVisible: true })"
     );
+
+    let videosCount = 0;
+    for (let i = 0; i < 30; i++) {
+      const videos = await driver.findElements(By.css("video"));
+      videosCount = videos.length;
+
+      if (videosCount < 3) {
+        console.log(`├ found ${videosCount} videos: retry in 1 sec…`);
+        await new Promise((r) => setTimeout(r, 1000));
+      } else {
+        break;
+      }
+    }
+
+    if (videosCount < 3) {
+      throw new Error(
+        `├ found only ${videosCount} videos ; require at least 3`
+      );
+    } else {
+      console.log(`├ found ${videosCount} videos: OK`);
+    }
 
     await new Promise((r) => setTimeout(r, 5000));
 
