@@ -1,27 +1,9 @@
 require("dotenv").config();
 const { By } = require("selenium-webdriver");
 const { Chrome, Firefox } = require("./browsers");
-
-const config = {
-  base: process.env.JITSI_BASE,
-  room: process.env.JITSI_ROOM,
-  jwt: process.env.JITSI_JWT,
-
-  type: process.env.SERVER_TYPE,
-  username: process.env.SERVER_USERNAME,
-  accessKey: process.env.SERVER_ACCESSKEY,
-};
-
-const buildJitsiUrl = (config) => {
-  const base = config.base.endsWith("/") ? config.base : `${config.base}/`;
-  let params = "?analytics.disabled=true";
-  if (config.jwt && config.jwt !== "") {
-    params = `${params}&jwt=${config.jwt}`;
-  }
-  return `${base}${config.room}${params}`;
-};
-
-const jitsiUrl = buildJitsiUrl(config);
+const { config } = require("./utils/config");
+const { jitsiUrl } = require("./utils/url");
+const { waitSeconds } = require("./utils/time");
 
 const browserFlow = async (browser) => {
   let driver;
@@ -60,7 +42,7 @@ const browserFlow = async (browser) => {
 
       if (videosCount < 3) {
         console.log(`├ found ${videosCount} videos: retry in 1 sec…`);
-        await new Promise((r) => setTimeout(r, 1000));
+        await waitSeconds(1);
       } else {
         break;
       }
@@ -74,7 +56,58 @@ const browserFlow = async (browser) => {
       console.log(`├ found ${videosCount} videos: OK`);
     }
 
-    await new Promise((r) => setTimeout(r, 5000));
+    await driver.executeScript(`
+      window.updateJitsiStats = () => {
+        for (const pc of APP.conference._room.rtc.peerConnections.values()) {
+
+          pc.peerconnection.getStats(null).then(stats => {
+            const items = [];
+
+            stats.forEach(report => {
+              let item = {
+                id: report.id,
+                type: report.type,
+                timestamp: report.timestamp,
+                stats: [],
+              };
+
+              Object.keys(report).forEach(statName => {
+                if (!['id', 'timestamp', 'type'].includes(statName)) {
+                  item.stats.push({
+                    name: statName,
+                    value: report[statName],
+                  })
+                }
+              });
+
+              items.push(item);
+            });
+
+            if (!window.JitsiStats) {
+              window.JitsiStats = [];
+            }
+
+            window.JitsiStats.push({
+              id: pc.id,
+              items,
+            });
+          });
+
+        }
+      };
+    `);
+
+    await waitSeconds(1);
+
+    for (let i = 0; i < 5; i++) {
+      await driver.executeScript("window.updateJitsiStats();");
+      await waitSeconds(1);
+    }
+
+    const stats = await driver.executeScript("return window.JitsiStats;");
+    console.log(stats);
+
+    await waitSeconds(5);
 
     console.log("├ end the call");
     await driver
@@ -82,11 +115,11 @@ const browserFlow = async (browser) => {
       .click();
 
     // wait that all tests are done, then close browser
-    await new Promise((r) => setTimeout(r, 2000));
+    await waitSeconds(2);
     console.log("├ closing browser");
     await driver.close();
 
-    await new Promise((r) => setTimeout(r, 1000));
+    await waitSeconds(1);
   } finally {
     if (config.type && config.type !== "" && config.type !== "local") {
       console.log("├ quit driver");
