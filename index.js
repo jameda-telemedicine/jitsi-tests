@@ -1,10 +1,16 @@
 require("dotenv").config();
+const util = require("util");
 const { By } = require("selenium-webdriver");
 const { config } = require("./utils/config");
 const { jitsiUrl, getCurrentUrl } = require("./utils/url");
 const { waitSeconds } = require("./utils/time");
 const { buildBrowserDriver } = require("./utils/driver");
-const { setupStats, updateStats, fetchStats } = require("./utils/stats");
+const {
+  setupStats,
+  updateStats,
+  fetchStats,
+  filterStats,
+} = require("./utils/stats");
 
 const browserFlow = async (browser) => {
   const driver = await buildBrowserDriver(browser);
@@ -50,7 +56,7 @@ const browserFlow = async (browser) => {
     }
 
     const stats = await fetchStats(driver);
-    console.log(stats);
+    console.log(util.inspect(filterStats(stats), false, null, true));
 
     await waitSeconds(5);
 

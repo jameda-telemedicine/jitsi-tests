@@ -49,8 +49,19 @@ const fetchStats = (driver) => {
   return driver.executeScript("return window.JitsiStats;");
 };
 
+const filterStats = (stats) => {
+  return stats
+    .filter((item) => item.id === 1)
+    .map((item) =>
+      item.items.filter((stat) =>
+        ["inbound-rtp", "outbound-rtp", "candidate-pair"].includes(stat.type)
+      )
+    );
+};
+
 module.exports = {
   setupStats,
   updateStats,
   fetchStats,
+  filterStats,
 };
