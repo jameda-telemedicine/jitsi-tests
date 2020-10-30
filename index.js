@@ -4,6 +4,7 @@ const { config } = require("./utils/config");
 const { jitsiUrl, getCurrentUrl } = require("./utils/url");
 const { waitSeconds } = require("./utils/time");
 const { buildBrowserDriver } = require("./utils/driver");
+const { setupStats, updateStats, fetchStats } = require("./utils/stats");
 
 const browserFlow = async (browser) => {
   const driver = await buildBrowserDriver(browser);
@@ -40,55 +41,15 @@ const browserFlow = async (browser) => {
       console.log(`├ found ${videosCount} videos: OK`);
     }
 
-    await driver.executeScript(`
-      window.updateJitsiStats = () => {
-        for (const pc of APP.conference._room.rtc.peerConnections.values()) {
-
-          pc.peerconnection.getStats(null).then(stats => {
-            const items = [];
-
-            stats.forEach(report => {
-              let item = {
-                id: report.id,
-                type: report.type,
-                timestamp: report.timestamp,
-                stats: [],
-              };
-
-              Object.keys(report).forEach(statName => {
-                if (!['id', 'timestamp', 'type'].includes(statName)) {
-                  item.stats.push({
-                    name: statName,
-                    value: report[statName],
-                  })
-                }
-              });
-
-              items.push(item);
-            });
-
-            if (!window.JitsiStats) {
-              window.JitsiStats = [];
-            }
-
-            window.JitsiStats.push({
-              id: pc.id,
-              items,
-            });
-          });
-
-        }
-      };
-    `);
-
+    await setupStats(driver);
     await waitSeconds(1);
 
     for (let i = 0; i < 5; i++) {
-      await driver.executeScript("window.updateJitsiStats();");
+      await updateStats(driver);
       await waitSeconds(1);
     }
 
-    const stats = await driver.executeScript("return window.JitsiStats;");
+    const stats = await fetchStats(driver);
     console.log(stats);
 
     await waitSeconds(5);
