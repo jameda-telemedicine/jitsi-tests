@@ -1,34 +1,18 @@
 require("dotenv").config();
 const { By } = require("selenium-webdriver");
-const { Chrome, Firefox } = require("./browsers");
 const { config } = require("./utils/config");
-const { jitsiUrl } = require("./utils/url");
+const { jitsiUrl, getCurrentUrl } = require("./utils/url");
 const { waitSeconds } = require("./utils/time");
+const { buildBrowserDriver } = require("./utils/driver");
 
 const browserFlow = async (browser) => {
-  let driver;
-
-  switch (browser) {
-    case "firefox":
-      driver = await Firefox.buildDriver(config);
-      break;
-
-    case "chrome":
-      driver = await Chrome.buildDriver(config);
-      break;
-
-    default:
-      throw new Error(`unsupported browser: '${browser}'`);
-  }
+  const driver = await buildBrowserDriver(browser);
 
   try {
     await driver.get(jitsiUrl);
 
     // print current url into the console
-    let currentUrl = await driver.getCurrentUrl();
-    if (config.jwt && config.jwt !== "") {
-      currentUrl = `${currentUrl}`.replace(`jwt=${config.jwt}`, "jwt=********");
-    }
+    const currentUrl = await getCurrentUrl(driver);
     console.log("├ opened URL: ", currentUrl);
 
     await driver.executeScript(

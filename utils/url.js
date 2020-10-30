@@ -11,7 +11,16 @@ const buildJitsiUrl = (config) => {
 
 const jitsiUrl = buildJitsiUrl(config);
 
+const getCurrentUrl = async (driver) => {
+  let currentUrl = await driver.getCurrentUrl();
+  if (config.jwt && config.jwt !== "") {
+    currentUrl = `${currentUrl}`.replace(`jwt=${config.jwt}`, "jwt=********");
+  }
+  return currentUrl;
+};
+
 module.exports = {
   buildJitsiUrl,
   jitsiUrl,
+  getCurrentUrl,
 };
