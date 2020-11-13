@@ -1,7 +1,7 @@
 const { Builder } = require("selenium-webdriver");
-const browser = require("selenium-webdriver/chrome");
+const browser = require("selenium-webdriver/edge");
 
-const browserName = "chrome";
+const browserName = "MicrosoftEdge";
 
 const options = new browser.Options();
 options.addArguments(
@@ -10,7 +10,7 @@ options.addArguments(
 );
 
 const fetchBuilder = () => {
-  return new Builder().forBrowser(browserName).setChromeOptions(options);
+  return new Builder().forBrowser(browserName).setEdgeOptions(options);
 };
 
 module.exports = {
