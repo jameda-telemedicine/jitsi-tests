@@ -9,8 +9,12 @@ options.addArguments(
   "use-fake-ui-for-media-stream"
 );
 
-const fetchBuilder = () => {
-  return new Builder().forBrowser(browserName).setEdgeOptions(options);
+const fetchBuilder = (capabilities) => {
+  let builder = new Builder();
+  if (capabilities) {
+    builder = builder.withCapabilities(capabilities);
+  }
+  return builder.forBrowser(browserName).setEdgeOptions(options);
 };
 
 module.exports = {

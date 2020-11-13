@@ -206,8 +206,6 @@ Browser fields:
 - `provider`: provider of the browser (should match the name of one of the provider)
   - type: `string`
   - required: `yes`
-- `constraints`: contraints for the browser (OS, version, …)
+- `capabilities`: capabilities required for the browser (OS, version, …)
   - type: `object`
   - required: `false`
-
-Constraints are not supported for the moment.

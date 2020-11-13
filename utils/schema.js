@@ -117,7 +117,7 @@ const schema = {
                 provider: {
                   $ref: "#/definitions/notEmptyString",
                 },
-                constraints: {
+                capabilities: {
                   type: "object",
                   additionalProperties: true,
                 },

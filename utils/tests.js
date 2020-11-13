@@ -5,8 +5,8 @@ const { initDriver } = require("./driver");
 
 // run one test
 const runTest = async (test, report) => {
-  const suite = report.testSuite().name(test.name);
   console.log(`Running test: ${test.name}…`);
+  const suite = report.testSuite().name(test.name);
   const browsers = [];
 
   // init drivers

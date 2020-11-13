@@ -2,19 +2,19 @@ const { basicAuthUrl } = require("./url");
 const { Firefox, Chrome, Safari, Edge } = require("../browsers");
 
 // fetch builder for specific browser
-const fetchBrowserDriver = (browserName) => {
+const fetchBrowserDriver = (browserName, capabilities) => {
   switch (browserName) {
     case "firefox":
-      return Firefox.fetchBuilder();
+      return Firefox.fetchBuilder(capabilities);
 
     case "chrome":
-      return Chrome.fetchBuilder();
+      return Chrome.fetchBuilder(capabilities);
 
     case "safari":
-      return Safari.fetchBuilder();
+      return Safari.fetchBuilder(capabilities);
 
     case "edge":
-      return Edge.fetchBuilder();
+      return Edge.fetchBuilder(capabilities);
 
     default:
       throw new Error(`unsupported browser type: '${browserName}'`);
@@ -23,7 +23,7 @@ const fetchBrowserDriver = (browserName) => {
 
 // initialize driver for a browser
 const initDriver = (browser) => {
-  const driver = fetchBrowserDriver(browser.type);
+  const driver = fetchBrowserDriver(browser.type, browser.capabilities);
   const provider = browser.provider;
   let url;
 
