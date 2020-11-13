@@ -59,7 +59,7 @@ node index.js
 
 You can use `-c`, `--config` or `--config-file` to provide another configuration file.
 
-By default, `config.default.yaml` will be used.
+By default, `config/default.yaml` will be used.
 
 ## Configuration file
 
@@ -202,7 +202,7 @@ Browser fields:
 - `type`: type of the browser
   - type: `string`
   - required: `yes`
-  - allowed value: `chrome`, `edge`, `firefox`, `safari`
+  - allowed values: `chrome`, `edge`, `firefox`, `safari`
 - `provider`: provider of the browser (should match the name of one of the provider)
   - type: `string`
   - required: `yes`

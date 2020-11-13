@@ -14,12 +14,20 @@ const jitsiFlow = async (browser, target, participants) => {
   const driver = browser.driver.build();
   const provider = browser.provider;
 
+  const flowMessage = (...message) => {
+    return `[Browser#${browser.name} (${browser.type})] ${message.join(" ")}`;
+  };
+
+  const flowLog = (...message) => {
+    console.log(` - ${flowMessage(message.join(" "))}`);
+  };
+
   try {
     await driver.get(target);
 
     // print current url into the console
     const currentUrl = await getCurrentUrl(driver);
-    console.log(" - opened URL: ", currentUrl);
+    flowLog("opened URL: ", currentUrl);
 
     await waitSeconds(2);
 
@@ -34,7 +42,7 @@ const jitsiFlow = async (browser, target, participants) => {
       videosCount = videos.length;
 
       if (videosCount < requiredVideos) {
-        console.log(` - found ${videosCount} videos: retry in 1 sec…`);
+        flowLog(`found ${videosCount} videos: retry in 1 sec…`);
         await waitSeconds(1);
       } else {
         break;
@@ -43,10 +51,12 @@ const jitsiFlow = async (browser, target, participants) => {
 
     if (videosCount < requiredVideos) {
       throw new Error(
-        `found only ${videosCount} videos ; require at least ${requiredVideos}`
+        flowMessage(
+          `found only ${videosCount} videos ; require at least ${requiredVideos}`
+        )
       );
     } else {
-      console.log(` - found ${videosCount} videos: OK`);
+      flowLog(`found ${videosCount} videos: OK`);
     }
 
     await setupStats(driver);
@@ -62,18 +72,18 @@ const jitsiFlow = async (browser, target, participants) => {
 
     await waitSeconds(5);
 
-    console.log(" - end the call");
+    flowLog("end the call");
     await driver
       .findElement(By.css('.toolbox-button[aria-label="Anruf beenden"]'))
       .click();
 
     // wait that all tests are done, then close browser
     await waitSeconds(2);
-    console.log(" - closing browser");
+    flowLog("closing browser");
     await driver.close();
   } finally {
     if (!provider.isLocal) {
-      console.log(" - quit driver");
+      flowLog("quit driver");
       await driver.quit();
       await waitSeconds(1);
     }

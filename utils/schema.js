@@ -56,7 +56,7 @@ const schema = {
                 $ref: "#/definitions/credentials",
               },
             },
-            required: ["name", "type"],
+            required: ["name", "type", "credentials"],
             additionalProperties: false,
           },
           {
