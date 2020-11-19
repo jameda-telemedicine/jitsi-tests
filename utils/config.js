@@ -51,16 +51,15 @@ const checkProviders = (configData) => {
   }
 
   // check if all used provider are defined
-  const invalidProviders = [];
-  for (const test of configData.tests) {
-    for (const browser of test.browsers) {
-      if (!providers.has(browser.provider)) {
-        invalidProviders.push(browser.provider);
-      }
-    }
-  }
-  if (invalidProviders.length > 0) {
-    const invalidProvidersList = invalidProviders.join(", ");
+  const invalidProviders = new Set(
+    configData.tests
+      .flatMap((t) => t.browsers)
+      .flatMap((b) => b.provider)
+      .filter((p) => !providers.has(p))
+  );
+
+  if (invalidProviders.size > 0) {
+    const invalidProvidersList = Array.from(invalidProviders).join(", ");
     panic(`Use of following undefined providers: ${invalidProvidersList}`);
   }
 };
