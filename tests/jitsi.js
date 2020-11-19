@@ -1,5 +1,5 @@
 const util = require("util");
-const { By } = require("selenium-webdriver");
+const { By, Key } = require("selenium-webdriver");
 
 const { waitSeconds } = require("../steps/time");
 const { getCurrentUrl } = require("../steps/url");
@@ -34,6 +34,34 @@ const jitsiFlow = async (browser, target, participants) => {
     await driver.executeScript(
       "APP.store.dispatch({ type: 'SET_TOOLBOX_ALWAYS_VISIBLE', alwaysVisible: true })"
     );
+
+    // check if there is a pre-join page
+    const prejoinDisplayNameInput = await driver.findElements(
+      By.css(".prejoin-input-area > input")
+    );
+    if (prejoinDisplayNameInput.length > 0) {
+      flowLog("fill display name on prejoin page…");
+      await prejoinDisplayNameInput[0].sendKeys(
+        `${browser.name} (jitsi-tests)`,
+        Key.RETURN
+      );
+    } else {
+      flowLog("no need to fill display name on a prejoin page…");
+    }
+
+    // check if prompted to enter a display name
+    const enterDisplayName = await driver.findElements(
+      By.css("input[name=displayName]")
+    );
+    if (enterDisplayName.length > 0) {
+      flowLog("fill display name…");
+      await enterDisplayName[0].sendKeys(
+        `${browser.name} (jitsi-tests)`,
+        Key.RETURN
+      );
+    } else {
+      flowLog("no need to fill display name…");
+    }
 
     let videosCount = 0;
     const requiredVideos = participants + 1;
@@ -72,9 +100,13 @@ const jitsiFlow = async (browser, target, participants) => {
 
     await waitSeconds(5);
 
+    const endCallText = await driver.executeScript(
+      "return $.i18n.t('toolbar.accessibilityLabel.hangup');"
+    );
+
     flowLog("end the call");
     await driver
-      .findElement(By.css('.toolbox-button[aria-label="Anruf beenden"]'))
+      .findElement(By.css(`.toolbox-button[aria-label="${endCallText}"]`))
       .click();
 
     // wait that all tests are done, then close browser

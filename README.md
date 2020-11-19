@@ -25,10 +25,7 @@
 
 ## Known limitations
 
-- only support German instances
-- no support for `config.requireDisplayName: true`
 - tests are only executed on one Jitsi Meet instance
-- browser constraints are not supported
 
 ## Quick start
 
