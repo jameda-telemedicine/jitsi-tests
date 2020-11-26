@@ -56,6 +56,7 @@ const jitsiFlow = async (browser, target, participants) => {
           Key.RETURN
         )
       );
+      await waitSeconds(1);
     }
 
     // check if prompted to enter a display name
@@ -72,6 +73,7 @@ const jitsiFlow = async (browser, target, participants) => {
           Key.RETURN
         )
       );
+      await waitSeconds(1);
     } else {
       flowLog("no need to fill display name…");
     }
