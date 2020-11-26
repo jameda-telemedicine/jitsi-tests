@@ -3,7 +3,7 @@ const { Command } = require("commander");
 
 const { version } = require("./package.json");
 const { parseConfig } = require("./utils/config");
-const { runTests } = require("./utils/tests");
+const { runTests } = require("./utils/runner");
 
 // parse command line arguments
 const program = new Command();
