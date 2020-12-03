@@ -6,3 +6,4 @@ config/*.yaml
 !config/default.yaml
 test-report.xml
 /out/screenshots/*.png
+/dist/

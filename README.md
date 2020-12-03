@@ -148,6 +148,9 @@ Fields:
 - `type`: the value needs to be equal to `hub`
   - type: `string`
   - required: `yes`
+- `url`: url of hub (for example: `http://localhost:4444`)
+  - type: `string`
+  - required: `yes`
 - `credentials`: credentials to authenticate against the hub
   - type: `object`
   - required: `false`

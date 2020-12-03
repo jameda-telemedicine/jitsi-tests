@@ -2,140 +2,138 @@ const schema = {
   definitions: {
     browserType: {
       anyOf: [
-        { const: "chrome" },
-        { const: "edge" },
-        { const: "firefox" },
-        { const: "safari" },
+        { const: 'chrome' },
+        { const: 'edge' },
+        { const: 'firefox' },
+        { const: 'safari' },
       ],
     },
     notEmptyString: {
-      type: "string",
+      type: 'string',
       minLength: 1,
     },
     dynamicString: {
       anyOf: [
-        { type: "string" },
+        { type: 'string' },
         {
-          type: "object",
-          properties: { fromEnv: { $ref: "#/definitions/notEmptyString" } },
-          required: ["fromEnv"],
+          type: 'object',
+          properties: { fromEnv: { $ref: '#/definitions/notEmptyString' } },
+          required: ['fromEnv'],
           additionalProperties: false,
         },
       ],
     },
     credentials: {
-      type: "object",
+      type: 'object',
       properties: {
         username: {
-          $ref: "#/definitions/dynamicString",
+          $ref: '#/definitions/dynamicString',
         },
         password: {
-          $ref: "#/definitions/dynamicString",
+          $ref: '#/definitions/dynamicString',
         },
       },
       required: [],
       additionalProperties: false,
     },
   },
-  type: "object",
+  type: 'object',
   properties: {
     providers: {
-      type: "array",
+      type: 'array',
       items: {
         anyOf: [
           {
-            type: "object",
+            type: 'object',
             properties: {
               name: {
-                $ref: "#/definitions/notEmptyString",
+                $ref: '#/definitions/notEmptyString',
               },
               type: {
-                const: "browserstack",
+                const: 'browserstack',
               },
               credentials: {
-                $ref: "#/definitions/credentials",
+                $ref: '#/definitions/credentials',
               },
             },
-            required: ["name", "type", "credentials"],
+            required: ['name', 'type', 'credentials'],
             additionalProperties: false,
           },
           {
-            type: "object",
+            type: 'object',
             properties: {
               name: {
-                $ref: "#/definitions/notEmptyString",
+                $ref: '#/definitions/notEmptyString',
               },
               type: {
-                const: "hub",
+                const: 'hub',
               },
               url: {
-                type: "string",
-                format: "uri",
+                type: 'string',
+                format: 'uri',
               },
               credentials: {
-                $ref: "#/definitions/credentials",
+                $ref: '#/definitions/credentials',
               },
             },
-            required: ["name", "type", "url"],
+            required: ['name', 'type', 'url'],
             additionalProperties: false,
           },
           {
-            type: "object",
+            type: 'object',
             properties: {
               name: {
-                $ref: "#/definitions/notEmptyString",
+                $ref: '#/definitions/notEmptyString',
               },
               type: {
-                const: "local",
+                const: 'local',
               },
             },
-            required: ["name", "type"],
+            required: ['name', 'type'],
             additionalProperties: false,
           },
         ],
       },
     },
     tests: {
-      type: "array",
+      type: 'array',
       items: {
-        type: "object",
+        type: 'object',
         properties: {
           name: {
-            $ref: "#/definitions/notEmptyString",
+            $ref: '#/definitions/notEmptyString',
           },
           browsers: {
-            type: "array",
+            type: 'array',
             items: {
-              type: "object",
+              type: 'object',
               properties: {
                 name: {
-                  $ref: "#/definitions/notEmptyString",
+                  $ref: '#/definitions/notEmptyString',
                 },
                 type: {
-                  $ref: "#/definitions/browserType",
+                  $ref: '#/definitions/browserType',
                 },
                 provider: {
-                  $ref: "#/definitions/notEmptyString",
+                  $ref: '#/definitions/notEmptyString',
                 },
                 capabilities: {
-                  type: "object",
+                  type: 'object',
                   additionalProperties: true,
                 },
               },
-              required: ["name", "type", "provider"],
+              required: ['name', 'type', 'provider'],
               additionalProperties: false,
             },
           },
         },
-        required: ["name", "browsers"],
+        required: ['name', 'browsers'],
         additionalProperties: false,
       },
     },
   },
-  required: ["providers", "tests"],
+  required: ['providers', 'tests'],
   additionalProperties: false,
 };
 
-module.exports = {
-  schema,
-};
+export default schema;

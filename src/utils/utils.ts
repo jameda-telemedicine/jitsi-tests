@@ -1,9 +1,5 @@
 // display an error message and exit
-const panic = (message) => {
+export const panic = (message: string): void => {
   console.error(message);
   process.exit(1);
-};
-
-module.exports = {
-  panic,
 };

@@ -1,5 +1,23 @@
-const setupStats = (driver) => {
-  return driver.executeScript(`
+import { ThenableWebDriver } from 'selenium-webdriver';
+
+export type JitsiStatsItemStat = {
+  name: string;
+  value: unknown;
+};
+
+export type JitsiStatsItem = {
+  id: unknown;
+  type: string;
+  timestamp: unknown;
+  stats: JitsiStatsItemStat[];
+};
+
+export type JitsiStats = {
+  id: unknown;
+  items: JitsiStatsItem[];
+};
+
+export const setupStats = (driver: ThenableWebDriver): Promise<void> => driver.executeScript(`
     window.updateJitsiStats = () => {
       for (const pc of APP.conference._room.rtc.peerConnections.values()) {
 
@@ -39,33 +57,22 @@ const setupStats = (driver) => {
       }
     };
   `);
-};
 
-const updateStats = (driver) => {
-  return driver.executeScript("window.updateJitsiStats();");
-};
+export const updateStats = (driver: ThenableWebDriver): Promise<void> => driver.executeScript('window.updateJitsiStats();');
 
-const fetchStats = (driver) => {
-  return driver.executeScript("return window.JitsiStats;");
-};
+export const fetchStats = (
+  driver: ThenableWebDriver,
+): Promise<JitsiStats[]> => driver.executeScript('return window.JitsiStats;');
 
-const filterStats = (stats) => {
+export const filterStats = (stats: JitsiStats[]): JitsiStats[] | null => {
   if (!stats) {
     return null;
   }
 
   return stats
     .filter((item) => item.id === 1)
-    .map((item) =>
-      item.items.filter((stat) =>
-        ["inbound-rtp", "outbound-rtp", "candidate-pair"].includes(stat.type)
-      )
-    );
-};
-
-module.exports = {
-  setupStats,
-  updateStats,
-  fetchStats,
-  filterStats,
+    .map((item) => ({
+      ...item,
+      items: item.items.filter((stat) => ['inbound-rtp', 'outbound-rtp', 'candidate-pair'].includes(stat.type)),
+    }));
 };

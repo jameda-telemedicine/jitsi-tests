@@ -1,10 +1,13 @@
-const builder = require("junit-report-builder");
-const { waitSeconds } = require("../steps/time");
+import { newBuilder } from 'junit-report-builder';
+import { waitSeconds } from '../steps/time';
 
-const { jitsiFlow } = require("../tests/jitsi");
-const { initDriver } = require("./driver");
+import { jitsiFlow } from '../tests/jitsi';
+import { InitializedBrowser, InternalTest } from '../types';
+import { initDriver } from './driver';
+import { TestStep } from './tests';
 
-const addItemsToSuite = (suite, items) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const addItemsToSuite = (suite: any, items: TestStep[]) => {
   const stats = {
     failure: 0,
     skipped: 0,
@@ -19,20 +22,24 @@ const addItemsToSuite = (suite, items) => {
     const testCase = suite.testCase().name(`[${item.browser}] ${item.name}`);
 
     switch (item.status) {
-      case "failure":
+      case 'failure':
         testCase.failure(item.message);
-        testCase.time(item.duration / 1000);
-        stats.failure++;
+        if (item.duration) {
+          testCase.time(item.duration / 1000);
+        }
+        stats.failure += 1;
         break;
 
-      case "skipped":
+      case 'skipped':
         testCase.skipped();
-        stats.skipped++;
+        stats.skipped += 1;
         break;
 
       default:
-        testCase.time(item.duration / 1000);
-        stats.success++;
+        if (item.duration) {
+          testCase.time(item.duration / 1000);
+        }
+        stats.success += 1;
         break;
     }
   });
@@ -40,16 +47,16 @@ const addItemsToSuite = (suite, items) => {
   return stats;
 };
 
-// run one test
-const runTest = async (test, report) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const runTest = async (test: InternalTest, report: any) => {
   console.log(`Running test: ${test.name}…`);
   const suite = report.testSuite().name(test.name);
-  const browsers = [];
+  const browsers: InitializedBrowser[] = [];
 
   // init drivers
-  for (const browser of test.browsers) {
+  test.browsers.forEach((browser) => {
     console.log(
-      ` - init browser driver for ${browser.name} (${browser.type})…`
+      ` - init browser driver for ${browser.name} (${browser.type})…`,
     );
 
     const testDriverInit = suite
@@ -60,22 +67,20 @@ const runTest = async (test, report) => {
     } catch (e) {
       testDriverInit.failure(e.message);
     }
-  }
+  });
 
   // run test
   const testTargetInit = suite.testCase().name(`run test ${test.name}`);
-  let flowResults = [];
+  let flowResults: PromiseSettledResult<TestStep[]>[] = [];
   try {
     if (!test.target) {
       throw new Error(`no target defined for the test '${test.name}'`);
     }
 
     switch (test.target.type) {
-      case "jitsi":
+      case 'jitsi':
         flowResults = await Promise.allSettled(
-          browsers.map((browser) =>
-            jitsiFlow(browser, test.target.url, test.participants)
-          )
+          browsers.map((browser) => jitsiFlow(browser, test.target.url, test.participants)),
         );
         break;
 
@@ -87,9 +92,9 @@ const runTest = async (test, report) => {
     testTargetInit.failure(e.message);
   }
 
-  let suites = [];
-  flowResults.map((res) => {
-    if (res.status == "fulfilled") {
+  const suites: TestStep[][] = [];
+  flowResults.forEach((res) => {
+    if (res.status === 'fulfilled') {
       suites.push(res.value);
     } else {
       console.log(res.reason);
@@ -97,30 +102,27 @@ const runTest = async (test, report) => {
     }
   });
 
-  return addItemsToSuite(suite, suites);
+  return addItemsToSuite(suite, suites.flat());
 };
 
 // run all tests one by one
-const runTests = async (tests) => {
+export const runTests = async (tests: InternalTest[]): Promise<void> => {
   const waitTimeAfterFailure = 60;
-  const report = builder.newBuilder();
+  const report = newBuilder();
 
+  // eslint-disable-next-line no-restricted-syntax
   for (const test of tests) {
     const testStats = await runTest(test, report);
     console.log(
-      ` -> ${testStats.success} success, ${testStats.failure} failed and ${testStats.skipped} skipped`
+      ` -> ${testStats.success} success, ${testStats.failure} failed and ${testStats.skipped} skipped`,
     );
     if (testStats.failure > 0) {
       console.error(
-        ` --> some tests failed (waiting ${waitTimeAfterFailure}sec)`
+        ` --> some tests failed (waiting ${waitTimeAfterFailure}sec)`,
       );
       await waitSeconds(waitTimeAfterFailure);
     }
   }
 
-  report.writeTo("test-report.xml");
-};
-
-module.exports = {
-  runTests,
+  report.writeTo('test-report.xml');
 };

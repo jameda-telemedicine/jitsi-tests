@@ -1,11 +1,11 @@
-const { Builder } = require("selenium-webdriver");
-const browser = require("selenium-webdriver/safari");
+import { Builder, Capabilities } from 'selenium-webdriver';
+import browser from 'selenium-webdriver/safari';
 
-const browserName = "safari";
+const browserName = 'safari';
 
 const options = new browser.Options();
 
-const fetchBuilder = (capabilities) => {
+const fetchBuilder = (capabilities?: Capabilities): Builder => {
   let builder = new Builder();
   if (capabilities) {
     builder = builder.withCapabilities(capabilities);
@@ -13,9 +13,9 @@ const fetchBuilder = (capabilities) => {
   return builder.forBrowser(browserName).setSafariOptions(options);
 };
 
-module.exports = {
+export default {
   browser,
   browserName,
-  fetchBuilder,
   options,
+  fetchBuilder,
 };
