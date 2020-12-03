@@ -40,7 +40,7 @@ npm install
 Run tests with:
 
 ```sh
-node index.js
+npm run start -- -c config/default.yaml
 ```
 
 You can use `-c`, `--config` or `--config-file` to provide another configuration file.
