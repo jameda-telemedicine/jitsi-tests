@@ -1,7 +1,7 @@
 import { newBuilder } from 'junit-report-builder';
 import { waitSeconds } from '../steps/time';
 
-import { jitsiFlow } from '../tests/jitsi';
+import { jitsiFlow } from '../jitsi/flow';
 import { InitializedBrowser, InternalTest } from '../types';
 import { initDriver } from './driver';
 import { TestStep } from './tests';

@@ -10,9 +10,13 @@ import {
   fetchStats,
   filterStats,
   JitsiStats,
-} from '../utils/stats';
+} from './stats';
 import { takeScreenshot } from '../steps/screenshot';
 import { InitializedBrowser } from '../types';
+import {
+  DISPLAY_NAME_INPUT, PREJOIN_DISPLAY_NAME_INPUT, TOOLBOX_BUTTON, VIDEO,
+} from './css';
+import { HANGUP_BUTTON_TEXT } from './translations';
 
 export const jitsiFlow = async (
   browser: InitializedBrowser,
@@ -49,7 +53,7 @@ export const jitsiFlow = async (
     // check if there is a pre-join page
     const prejoinDisplayNameInput = (await step(
       'check for a pre-join page',
-      () => driver.findElements(By.css('.prejoin-input-area > input')),
+      () => driver.findElements(By.css(PREJOIN_DISPLAY_NAME_INPUT)),
       [],
     )) as WebElement[];
     if (prejoinDisplayNameInput.length > 0) {
@@ -64,7 +68,7 @@ export const jitsiFlow = async (
     // check if prompted to enter a display name
     const enterDisplayName = (await step(
       'check for a display name prompt',
-      () => driver.findElements(By.css('input[name=displayName]')),
+      () => driver.findElements(By.css(DISPLAY_NAME_INPUT)),
       [],
     )) as WebElement[];
     if (enterDisplayName.length > 0) {
@@ -81,7 +85,7 @@ export const jitsiFlow = async (
     let videosCount = 0;
     const requiredVideos = participants + 1;
     for (let i = 0; i < 30; i += 1) {
-      const videos = (await step(`find videos elements (try#${i})`, () => driver.findElements(By.css('video')))) as WebElement[];
+      const videos = (await step(`find videos elements (try#${i})`, () => driver.findElements(By.css(VIDEO)))) as WebElement[];
       videosCount = videos.length;
 
       if (videosCount < requiredVideos) {
@@ -118,7 +122,7 @@ export const jitsiFlow = async (
           (check) => check.status !== 'fulfilled'
             || !check.value
             || !check.value.result
-            || check.value.result !== 'video',
+            || check.value.result !== 'ok',
         );
         if (failedChecks.length > 0) {
           const failedChecksString = JSON.stringify(failedChecks);
@@ -154,12 +158,12 @@ export const jitsiFlow = async (
     await waitSeconds(2);
 
     const endCallText = await step('find translation for hangup', () => driver.executeScript(
-      "return $.i18n.t('toolbar.accessibilityLabel.hangup');",
+      `return $.i18n.t('${HANGUP_BUTTON_TEXT}');`,
     ));
 
     flowLog('end the call');
     await step('click on the hang up button', () => driver
-      .findElement(By.css(`.toolbox-button[aria-label="${endCallText}"]`))
+      .findElement(By.css(`${TOOLBOX_BUTTON}[aria-label="${endCallText}"]`))
       .click());
 
     // wait that all tests are done, then close browser
@@ -178,6 +182,7 @@ export const jitsiFlow = async (
       }
       await waitSeconds(1);
     }
+
     // eslint-disable-next-line no-unsafe-finally
     return end();
   }

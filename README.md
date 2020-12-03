@@ -209,3 +209,8 @@ Browser fields:
 - `capabilities`: capabilities required for the browser (OS, version, …)
   - type: `object`
   - required: `false`
+
+If you want to know what capabilities you can configure, you can have a look here:
+
+- https://w3c.github.io/webdriver/#capabilities
+- https://www.browserstack.com/automate/selenium-4#selenium4-updating-standard

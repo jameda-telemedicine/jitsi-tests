@@ -1,7 +1,7 @@
 import { ThenableWebDriver } from 'selenium-webdriver';
 import { waitSeconds } from './time';
 
-export type AllowedVideoPixelResult = 'video' | 'blank' | 'still';
+export type AllowedVideoPixelResult = 'ok' | 'blank' | 'still';
 
 export type VideoPixelResults = {
   index: number;
@@ -35,7 +35,7 @@ export const verifyVideoDisplayByIndex = async (
   driver: ThenableWebDriver,
   index: number,
 ): Promise<VideoPixelResults> => {
-  let videoCheck: AllowedVideoPixelResult = 'video';
+  let videoCheck: AllowedVideoPixelResult = 'ok';
 
   let sum1 = await getPixelSumByIndex(driver, index);
   await waitSeconds(1);
