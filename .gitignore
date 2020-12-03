@@ -5,3 +5,4 @@ node_modules/
 config/*.yaml
 !config/default.yaml
 test-report.xml
+/out/screenshots/*.png

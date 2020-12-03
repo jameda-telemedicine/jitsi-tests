@@ -1,4 +1,3 @@
-const util = require("util");
 const { By, Key } = require("selenium-webdriver");
 
 const { startTest } = require("../utils/tests");
@@ -11,6 +10,7 @@ const {
   fetchStats,
   filterStats,
 } = require("../utils/stats");
+const { takeScreenshot } = require("../steps/screenshot");
 
 const jitsiFlow = async (browser, target, participants) => {
   const { step, end } = startTest(browser.name);
@@ -41,6 +41,10 @@ const jitsiFlow = async (browser, target, participants) => {
         "APP.store.dispatch({ type: 'SET_TOOLBOX_ALWAYS_VISIBLE', alwaysVisible: true })"
       )
     );
+
+    await Promise.allSettled([takeScreenshot(driver)]);
+
+    await waitSeconds(2);
 
     // check if there is a pre-join page
     const prejoinDisplayNameInput = await step(
@@ -94,6 +98,8 @@ const jitsiFlow = async (browser, target, participants) => {
       }
     }
 
+    await Promise.allSettled([takeScreenshot(driver)]);
+
     await step(
       "check number of videos",
       () =>
@@ -143,7 +149,18 @@ const jitsiFlow = async (browser, target, participants) => {
     }
 
     const stats = await step("fetch stats", () => fetchStats(driver));
-    // console.log(util.inspect(filterStats(stats), false, null, true));
+    const filteredStats = filterStats(stats);
+    await step(
+      "check stats",
+      () =>
+        new Promise((resolve, reject) => {
+          if (!filteredStats) {
+            reject("stats are empty");
+          } else {
+            resolve(filteredStats);
+          }
+        })
+    );
 
     await waitSeconds(2);
 
@@ -169,7 +186,11 @@ const jitsiFlow = async (browser, target, participants) => {
   } finally {
     if (!provider.isLocal) {
       flowLog("quit driver");
-      await driver.quit();
+      try {
+        await driver.quit();
+      } catch (e) {
+        flowLog("ERROR:", e.message);
+      }
       await waitSeconds(1);
     }
     return end();

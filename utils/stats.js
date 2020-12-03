@@ -50,6 +50,10 @@ const fetchStats = (driver) => {
 };
 
 const filterStats = (stats) => {
+  if (!stats) {
+    return null;
+  }
+
   return stats
     .filter((item) => item.id === 1)
     .map((item) =>
