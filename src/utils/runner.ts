@@ -5,6 +5,7 @@ import { jitsiFlow } from '../jitsi/flow';
 import { InitializedBrowser, InternalTest } from '../types';
 import { initDriver } from './driver';
 import { TestStep } from './tests';
+import { buildJitsiUrl } from './url';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const addItemsToSuite = (suite: any, items: TestStep[]) => {
@@ -73,19 +74,21 @@ const runTest = async (test: InternalTest, report: any) => {
   const testTargetInit = suite.testCase().name(`run test ${test.name}`);
   let flowResults: PromiseSettledResult<TestStep[]>[] = [];
   try {
-    if (!test.target) {
-      throw new Error(`no target defined for the test '${test.name}'`);
+    if (!test.instance) {
+      throw new Error(`no instance defined for the test '${test.name}'`);
     }
 
-    switch (test.target.type) {
+    let targetUrl: string;
+    switch (test.instance.type) {
       case 'jitsi':
+        targetUrl = buildJitsiUrl(test.instance);
         flowResults = await Promise.allSettled(
-          browsers.map((browser) => jitsiFlow(browser, test.target.url, test.participants)),
+          browsers.map((browser) => jitsiFlow(browser, targetUrl, test.participants)),
         );
         break;
 
       default:
-        throw new Error(`unsupported target type (${test.target.type})`);
+        throw new Error(`unsupported instance type (${test.instance.type})`);
     }
   } catch (e) {
     console.error(` - !! FAILED: ${e.message}`);

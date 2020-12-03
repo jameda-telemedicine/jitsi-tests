@@ -1,13 +1,13 @@
-import { Config, Credentials } from '../types';
+import { Credentials, InternalJitsiInstance } from '../types';
 
 // build Jitsi Meet URL
-export const buildJitsiUrl = (config: Config): string => {
-  const base = config.base.endsWith('/') ? config.base : `${config.base}/`;
+export const buildJitsiUrl = (instance: InternalJitsiInstance): string => {
+  const base = instance.url.endsWith('/') ? instance.url : `${instance.url}/`;
   let params = '?analytics.disabled=true';
-  if (config.jwt && config.jwt !== '') {
-    params = `${params}&jwt=${config.jwt}`;
+  if (instance.jwt && instance.jwt !== '') {
+    params = `${params}&jwt=${instance.jwt}`;
   }
-  return `${base}${config.room}${params}`;
+  return `${base}${instance.room}${params}`;
 };
 
 // prepend a string with credentials

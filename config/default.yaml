@@ -2,8 +2,16 @@ providers:
   - name: Local
     type: local
 
+instances:
+  - name: Jitsi Meet
+    type: jitsi
+    url: https://meet.jit.si/
+    room:
+      name: jitsi-tests-room
+
 tests:
   - name: Chrome - Chrome
+    instance: Jitsi Meet
     browsers:
       - name: Chrome 1
         type: chrome
@@ -13,6 +21,7 @@ tests:
         provider: Local
 
   - name: Chrome - Firefox
+    instance: Jitsi Meet
     browsers:
       - name: Chrome
         type: chrome
@@ -22,6 +31,7 @@ tests:
         provider: Local
 
   - name: Firefox - Firefox
+    instance: Jitsi Meet
     browsers:
       - name: Firefox 1
         type: firefox

@@ -25,7 +25,9 @@
 
 ## Known limitations
 
-- tests are only executed on one Jitsi Meet instance
+- random room names are not supported
+- only support for Jitsi Meet instances
+- cannot write a custom tests flow
 
 ## Quick start
 
@@ -33,19 +35,6 @@ Install all dependencies using:
 
 ```sh
 npm install
-```
-
-Copy the `.env.example` file into `.env` and edit values to have something like that:
-
-```sh
-# base URL of your Jitsi Meet instance
-JITSI_BASE=https://meet.example.com/
-
-# the room that will be used for tests
-JITSI_ROOM=tests-123456789
-
-# if you need to be authenticated using a JWT token, you can pass it using the following key
-JITSI_JWT=super-secret-token
 ```
 
 Run tests with:
@@ -85,8 +74,16 @@ providers:
   - name: Local
     type: local
 
+instances:
+  - name: Jitsi Meet
+    type: jitsi
+    url: https://meet.jit.si/
+    room:
+      name: jitsi-tests-room
+
 tests:
   - name: Chrome - Chrome
+    instance: Jitsi Meet
     browsers:
       - name: Chrome BS
         type: chrome
@@ -96,6 +93,7 @@ tests:
         provider: Local
 
   - name: Chrome - Firefox
+    instance: Jitsi Meet
     browsers:
       - name: Chrome
         type: chrome
@@ -105,6 +103,7 @@ tests:
         provider: Local
 
   - name: Firefox - Firefox
+    instance: Jitsi Meet
     browsers:
       - name: Firefox 1
         type: firefox
@@ -114,9 +113,10 @@ tests:
         provider: Local hub
 ```
 
-A configuration file is composed of two parts:
+A configuration file is composed of three parts:
 
 - `providers`: array to define a list of providers
+- `instances`: array to define a list of instances
 - `tests`: array to define the differents tests to execute
 
 ### Providers
@@ -133,10 +133,10 @@ Fields:
 
 - `name`: name of the provider (will be used as a reference for browsers)
   - type: `string`
-  - required: `yes`
+  - required: `true`
 - `type`: the value needs to be equal to `local`
   - type: `string`
-  - required: `yes`
+  - required: `true`
 
 #### Hub provider
 
@@ -144,13 +144,13 @@ Fields:
 
 - `name`: name of the provider (will be used as a reference for browsers)
   - type: `string`
-  - required: `yes`
+  - required: `true`
 - `type`: the value needs to be equal to `hub`
   - type: `string`
-  - required: `yes`
+  - required: `true`
 - `url`: url of hub (for example: `http://localhost:4444`)
   - type: `string`
-  - required: `yes`
+  - required: `true`
 - `credentials`: credentials to authenticate against the hub
   - type: `object`
   - required: `false`
@@ -168,10 +168,10 @@ Fields:
 
 - `name`: name of the provider (will be used as a reference for browsers)
   - type: `string`
-  - required: `yes`
+  - required: `true`
 - `type`: the value needs to be equal to `browserstack`
   - type: `string`
-  - required: `yes`
+  - required: `true`
 - `credentials`: credentials to authenticate against BrowserStack
   - type: `object`
   - required: `false`
@@ -183,29 +183,54 @@ Fields:
 
 You can use values from environment variables for credentials by using objects with the `fromEnv` property set to the environment variable name.
 
+### Instances
+
+### Jitsi Meet instance
+
+Fields:
+
+- `name`: name if the instance (will be used as a reference in tests)
+  - type: `string`
+  - required: `true`
+- `type`: the value needs to be equal to `jitsi`
+  - type: `string`
+  - required: `true`
+- `url`: URL for the Jitsi Meet instance
+  - type: `string`
+  - required: `true`
+- `jwt`: JWT token if needed
+  - type: `string` OR `object` with `fromEnv` field (type: `string`, required: `false`)
+  - required: `false`
+- `room`: one of the following:
+  - `string`: the name of the room (required)
+  - `object` with a `name` property (type `string`) (required)
+
 ### Tests
 
 Fields:
 
 - `name`: name of the test
   - type: `string`
-  - required: `yes`
+  - required: `true`
+- `instance`: instance to test (should match the name of one of the instances)
+  - type: `string`
+  - required: `true`
 - `browsers`: list of browsers for the test
   - type: `array` of browsers (see the definition below)
-  - required: `yes`
+  - required: `true`
 
 Browser fields:
 
 - `name`: name of the browser
   - type: `string`
-  - required: `yes`
+  - required: `true`
 - `type`: type of the browser
   - type: `string`
-  - required: `yes`
+  - required: `true`
   - allowed values: `chrome`, `edge`, `firefox`, `safari`
-- `provider`: provider of the browser (should match the name of one of the provider)
+- `provider`: provider of the browser (should match the name of one of the providers)
   - type: `string`
-  - required: `yes`
+  - required: `true`
 - `capabilities`: capabilities required for the browser (OS, version, …)
   - type: `object`
   - required: `false`

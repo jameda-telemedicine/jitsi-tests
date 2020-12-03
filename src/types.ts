@@ -7,7 +7,19 @@ export type Config = {
   jwt?: string;
 };
 
-export type DynamicString = string | { fromEnv: string };
+export type DynamicString = string | {
+  fromEnv: string;
+};
+
+export const isDynamicString = (x: DynamicString | Record<string, unknown>): x is DynamicString => {
+  if (typeof x === 'string') {
+    return true;
+  }
+  if (typeof x === 'object' && Object.prototype.hasOwnProperty.call(x, 'fromEnv')) {
+    return true;
+  }
+  return false;
+};
 
 export type Credentials = {
   username?: DynamicString;
@@ -16,24 +28,38 @@ export type Credentials = {
 
 // Instances
 
-export type BaseInstance = {
-  name: string;
-  type: string;
+export type InstanceRoom = DynamicString | {
+  name: DynamicString
 };
 
-export type JitsiInstance = BaseInstance & {
+export type BaseInstance = {
+  name: DynamicString;
+};
+
+export type BaseJitsiInstance = BaseInstance & {
   type: 'jitsi';
-  url: string;
+};
+
+export type JitsiInstance = BaseJitsiInstance & {
+  url: DynamicString;
   jwt?: DynamicString;
+  room: InstanceRoom;
+};
+
+export type InternalJitsiInstance = BaseJitsiInstance & {
+  url: string;
+  jwt: string;
+  room: string;
 };
 
 export type Instance = JitsiInstance;
+
+export type InternalInstance = InternalJitsiInstance;
 
 // Providers
 
 export type BaseProvider = {
   name: string;
-  type: string;
   isLocal?: boolean;
 };
 
@@ -49,7 +75,7 @@ export type HubProvider = BaseProvider & {
 
 export type BrowserStackProvider = BaseProvider & {
   type: 'browserstack';
-  credentials?: Credentials;
+  credentials: Credentials;
 };
 
 export type ExternalProvider = HubProvider | BrowserStackProvider;
@@ -77,22 +103,23 @@ export type InitializedBrowser = BaseBrowser<Provider> & {
   driver: Builder;
 };
 
-type BaseTest<B> = {
+type BaseTest<B, I> = {
   name: string;
+  instance: I;
   browsers: B[];
 };
 
-export type Test = BaseTest<Browser>;
+export type Test = BaseTest<Browser, string>;
 
-export type InternalTest = BaseTest<InternalBrowser> & {
+export type InternalTest = BaseTest<InternalBrowser, InternalInstance> & {
   participants: number
-  target: Instance;
 };
 
 // Configuration file
 
 export type ConfigurationFile = {
   providers: Provider[];
+  instances: Instance[];
   tests: Test[];
 };
 

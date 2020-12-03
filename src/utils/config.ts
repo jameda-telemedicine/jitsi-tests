@@ -5,14 +5,16 @@ import addFormats from 'ajv-formats';
 
 import { panic } from './utils';
 import schema from './schema';
-import { buildJitsiUrl } from './url';
 import {
   Config,
   ConfigurationFile,
   DynamicString,
   ExternalProvider,
+  Instance,
   InternalBrowser,
+  InternalInstance,
   InternalTest,
+  isDynamicString,
   Provider,
   Test,
 } from '../types';
@@ -28,6 +30,7 @@ export const config: Config = {
 const loadConfig = (configFile: string): ConfigurationFile => {
   let configData: ConfigurationFile = {
     providers: [],
+    instances: [],
     tests: [],
   };
 
@@ -77,9 +80,33 @@ const checkProviders = (configData: ConfigurationFile) => {
   }
 };
 
+// some checks on instances
+const checkInstances = (configData: ConfigurationFile) => {
+  const instances = new Set(
+    configData.instances.map((instance) => instance.name),
+  );
+
+  // check that each instance are defined only one time
+  if (instances.size !== configData.instances.length) {
+    panic('Some instances are defined multiple time');
+  }
+
+  // check if all used instance are defined
+  const invalidInstances = new Set(
+    configData.tests.filter((t) => !instances.has(t.instance)),
+  );
+
+  if (invalidInstances.size > 0) {
+    const invalidInstanceList = Array.from(invalidInstances)
+      .map((instance) => instance.instance)
+      .join(', ');
+    panic(`Use of following undefined instances: ${invalidInstanceList}`);
+  }
+};
+
 // resolve dynamic strings
 const resolveDynamicString = (item: DynamicString): string => {
-  if (typeof item === 'string') {
+  if (!item || typeof item === 'string') {
     return item;
   }
 
@@ -123,6 +150,28 @@ const resolveProviders = (providers: Provider[]): Provider[] => providers.map((p
   return externalProvider;
 });
 
+// resolve dynamic strings for instances
+// eslint-disable-next-line max-len
+const resolveInstances = (instances: Instance[]): InternalInstance[] => instances.map((instance) => {
+  const { room } = instance;
+  let roomName = 'test-room';
+
+  if (isDynamicString(room)) {
+    roomName = resolveDynamicString(room);
+  } else {
+    roomName = resolveDynamicString(room.name);
+  }
+
+  return {
+    ...instance,
+    name: resolveDynamicString(instance.name),
+    url: resolveDynamicString(instance.url),
+    type: instance.type,
+    jwt: resolveDynamicString(instance.jwt || ''),
+    room: roomName,
+  };
+});
+
 // find provider data
 const findProviderData = (providers: Provider[], name: string): Provider => {
   const providerList = providers.filter((provider) => provider.name === name);
@@ -132,16 +181,28 @@ const findProviderData = (providers: Provider[], name: string): Provider => {
   return providerList[0];
 };
 
+// find instance data
+const findInstanceData = (
+  instances: InternalInstance[],
+  name: string,
+): InternalInstance => {
+  const instanceList = instances.filter((instance) => instance.name === name);
+  if (instanceList.length === 0) {
+    panic(`could not find instance '${name}'`);
+  }
+  return instanceList[0];
+};
+
 // add new fields and resolve provider for each browser for each test
-const resolveTests = (tests: Test[], providers: Provider[]): InternalTest[] => tests.map(
+const resolveTests = (
+  tests: Test[],
+  providers: Provider[],
+  instances: InternalInstance[],
+): InternalTest[] => tests.map(
   (test): InternalTest => ({
     ...test,
     participants: test.browsers.length,
-    target: {
-      name: 'Jitsi instance',
-      type: 'jitsi',
-      url: buildJitsiUrl(config),
-    },
+    instance: findInstanceData(instances, test.instance),
     browsers: test.browsers.map(
       (browser): InternalBrowser => ({
         ...browser,
@@ -156,9 +217,11 @@ export const parseConfig = (configFile: string): InternalTest[] => {
   const configData = loadConfig(configFile);
   validateConfig(configData);
   checkProviders(configData);
+  checkInstances(configData);
 
   const providers = resolveProviders(configData.providers);
-  const tests = resolveTests(configData.tests, providers);
+  const instances = resolveInstances(configData.instances);
+  const tests = resolveTests(configData.tests, providers, instances);
 
   return tests;
 };

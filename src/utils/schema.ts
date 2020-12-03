@@ -14,7 +14,7 @@ const schema = {
     },
     dynamicString: {
       anyOf: [
-        { type: 'string' },
+        { $ref: '#/definitions/notEmptyString' },
         {
           type: 'object',
           properties: { fromEnv: { $ref: '#/definitions/notEmptyString' } },
@@ -26,12 +26,8 @@ const schema = {
     credentials: {
       type: 'object',
       properties: {
-        username: {
-          $ref: '#/definitions/dynamicString',
-        },
-        password: {
-          $ref: '#/definitions/dynamicString',
-        },
+        username: { $ref: '#/definitions/dynamicString' },
+        password: { $ref: '#/definitions/dynamicString' },
       },
       required: [],
       additionalProperties: false,
@@ -39,6 +35,37 @@ const schema = {
   },
   type: 'object',
   properties: {
+    instances: {
+      type: 'array',
+      items: {
+        anyOf: [
+          {
+            type: 'object',
+            properties: {
+              name: { $ref: '#/definitions/dynamicString' },
+              type: { const: 'jitsi' },
+              url: { $ref: '#/definitions/dynamicString' },
+              jwt: { $ref: '#/definitions/dynamicString' },
+              room: {
+                anyOf: [
+                  { $ref: '#/definitions/dynamicString' },
+                  {
+                    type: 'object',
+                    properties: {
+                      name: { $ref: '#/definitions/dynamicString' },
+                    },
+                    required: ['name'],
+                    additionalProperties: false,
+                  },
+                ],
+              },
+            },
+            required: ['name', 'type', 'url', 'room'],
+            additionalProperties: false,
+          },
+        ],
+      },
+    },
     providers: {
       type: 'array',
       items: {
@@ -46,15 +73,9 @@ const schema = {
           {
             type: 'object',
             properties: {
-              name: {
-                $ref: '#/definitions/notEmptyString',
-              },
-              type: {
-                const: 'browserstack',
-              },
-              credentials: {
-                $ref: '#/definitions/credentials',
-              },
+              name: { $ref: '#/definitions/notEmptyString' },
+              type: { const: 'browserstack' },
+              credentials: { $ref: '#/definitions/credentials' },
             },
             required: ['name', 'type', 'credentials'],
             additionalProperties: false,
@@ -62,19 +83,13 @@ const schema = {
           {
             type: 'object',
             properties: {
-              name: {
-                $ref: '#/definitions/notEmptyString',
-              },
-              type: {
-                const: 'hub',
-              },
+              name: { $ref: '#/definitions/notEmptyString' },
+              type: { const: 'hub' },
               url: {
                 type: 'string',
                 format: 'uri',
               },
-              credentials: {
-                $ref: '#/definitions/credentials',
-              },
+              credentials: { $ref: '#/definitions/credentials' },
             },
             required: ['name', 'type', 'url'],
             additionalProperties: false,
@@ -82,12 +97,8 @@ const schema = {
           {
             type: 'object',
             properties: {
-              name: {
-                $ref: '#/definitions/notEmptyString',
-              },
-              type: {
-                const: 'local',
-              },
+              name: { $ref: '#/definitions/notEmptyString' },
+              type: { const: 'local' },
             },
             required: ['name', 'type'],
             additionalProperties: false,
@@ -100,23 +111,16 @@ const schema = {
       items: {
         type: 'object',
         properties: {
-          name: {
-            $ref: '#/definitions/notEmptyString',
-          },
+          name: { $ref: '#/definitions/notEmptyString' },
+          instance: { $ref: '#/definitions/notEmptyString' },
           browsers: {
             type: 'array',
             items: {
               type: 'object',
               properties: {
-                name: {
-                  $ref: '#/definitions/notEmptyString',
-                },
-                type: {
-                  $ref: '#/definitions/browserType',
-                },
-                provider: {
-                  $ref: '#/definitions/notEmptyString',
-                },
+                name: { $ref: '#/definitions/notEmptyString' },
+                type: { $ref: '#/definitions/browserType' },
+                provider: { $ref: '#/definitions/notEmptyString' },
                 capabilities: {
                   type: 'object',
                   additionalProperties: true,
@@ -127,12 +131,12 @@ const schema = {
             },
           },
         },
-        required: ['name', 'browsers'],
+        required: ['name', 'instance', 'browsers'],
         additionalProperties: false,
       },
     },
   },
-  required: ['providers', 'tests'],
+  required: ['instances', 'providers', 'tests'],
   additionalProperties: false,
 };
 
