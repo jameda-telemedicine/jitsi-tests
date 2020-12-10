@@ -1,0 +1,94 @@
+export type TaskParams = Record<string, string | number>;
+export type Task = string | { [taskName: string]: TaskParams };
+type TaskObject = {
+  name: string;
+  params: TaskParams;
+};
+
+export type TaskArgs = {
+  name: string;
+  params: TaskParams;
+};
+
+export interface TaskInterface {
+  args: TaskArgs;
+  run(params?: TaskParams): Promise<void>;
+}
+
+export type TaskConstructor = new (args: TaskArgs) => TaskInterface;
+
+/**
+ * Create a task using a constructor `C` and arguments `args`.
+ *
+ * @param C {TaskConstructor} constructor for the task.
+ * @param args {TaskArgs} arguments for the task.
+ */
+export const createTask = (C: TaskConstructor, args: TaskArgs): TaskInterface => new C(args);
+
+/**
+ * Resolve to a task using the name of the task.
+ *
+ * @param taskName name of the task to resolve.
+ */
+export const resolve = async (taskName: string): Promise<TaskConstructor> => {
+  const unallowedNames = ['task'];
+
+  if (unallowedNames.includes(taskName)) {
+    throw new Error(`Task '${taskName}' is not allowed for use.`);
+  }
+
+  if (taskName.endsWith('.test') || taskName.endsWith('.test.ts')) {
+    throw new Error(`Not allowed to resolve a test file (${taskName}) as a task.`);
+  }
+
+  return (await import(`./${taskName}`)).default;
+};
+
+/**
+ * Parse tasks.
+ *
+ * @param tasks tasks to parse.
+ */
+export const parseTasks = (tasks: Task[]): TaskObject[] => tasks.map((task: Task): TaskObject => {
+  let name: string;
+  let params: TaskParams = {};
+
+  if (typeof task === 'string') {
+    name = task;
+  } else {
+    const entries = Object.entries(task);
+    if (entries.length < 1) {
+      throw new Error('Empty task entry.');
+    } else if (entries.length > 1) {
+      throw new Error('Bad task entry.');
+    }
+    const [objectTaskName, objectTaskParams] = entries[0];
+    name = objectTaskName;
+    params = objectTaskParams;
+  }
+
+  return {
+    name,
+    params,
+  };
+});
+
+/**
+ * Resolve all tasks.
+ *
+ * @param tasks tasks to resolve.
+ */
+export const resolveAll = async (tasks: Task[]): Promise<void> => {
+  const taskObjects = parseTasks(tasks);
+
+  // eslint-disable-next-line no-restricted-syntax
+  for (const task of taskObjects) {
+    const resolvedTask: TaskConstructor = await resolve(task.name);
+    const args: TaskArgs = {
+      name: task.name,
+      params: task.params,
+    };
+    const dynamicTask = createTask(resolvedTask, args);
+    await dynamicTask.run();
+  }
+};
