@@ -23,6 +23,15 @@ describe('Basic barrier tests', () => {
     await Promise.all(p);
   });
 
+  test('One barrier should let us continue', async () => {
+    const b: BarrierArgs = {
+      counter: 1,
+      name: 'one',
+    };
+
+    await expect(barrier(b)).resolves.toBeUndefined();
+  });
+
   test('Test timeout', async () => {
     const b: BarrierArgs = {
       counter: 2,
@@ -123,5 +132,14 @@ describe('Basic barrier tests', () => {
       })(),
       await expect(barrier(b)).rejects.toThrowError('Timeout'),
     ]);
+  });
+
+  test('Test default timeout', async () => {
+    const b: BarrierArgs = {
+      counter: 2,
+      name: 'timeout',
+    };
+
+    await expect(barrier(b)).rejects.toThrowError('Timeout');
   });
 });

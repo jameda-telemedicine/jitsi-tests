@@ -17,10 +17,17 @@ type BarrierRegistry = Map<string, Barrier>;
 
 export type BarrierCreator = (args: BarrierArgs) => BarrierPromise;
 
-const synchro = (): {barrier: BarrierCreator} => {
+/**
+ * Synchronization tools that can be used.
+ */
+const synchro = (): { barrier: BarrierCreator } => {
   const barriers: BarrierRegistry = new Map();
 
-  // decrease the counter of a specific barrier
+  /**
+   * Decrease the counter for a specific barrier.
+   *
+   * @param {Barrier} barrier the barrier that should have its `counter` decreased.
+   */
   const consume = (barrier: Barrier): void => {
     barrier.counter -= 1;
 
@@ -31,13 +38,24 @@ const synchro = (): {barrier: BarrierCreator} => {
     }
   };
 
+  /**
+   * Get or create a barrier.
+   *
+   * @param {BarrierArgs} args arguments for the barrier should have at least
+   *                           the `name` and the `counter` fields.
+   */
   const getOrCreate = ({ name, counter, timeout }: BarrierArgs): Barrier => {
     let b = barriers.get(name);
     if (!b) {
-      let resolve: () => void = () => { throw new Error(); };
+      let resolve: () => void = () => {
+        throw new Error();
+      };
 
       const promise: BarrierPromise = new Promise((r, reject) => {
-        let timer: NodeJS.Timeout | undefined = setTimeout(() => reject(new Error('Timeout')), timeout || 30_000);
+        let timer: NodeJS.Timeout | undefined = setTimeout(
+          () => reject(new Error('Timeout')),
+          timeout || 1_000,
+        );
         resolve = () => {
           if (timer) {
             clearTimeout(timer);
@@ -60,6 +78,11 @@ const synchro = (): {barrier: BarrierCreator} => {
     return b;
   };
 
+  /**
+   * Use a specific barrier for synchronization.
+   *
+   * @param args arguments for the barrier.
+   */
   const barrier = (args: BarrierArgs): BarrierPromise => {
     const b = getOrCreate(args);
     consume(b);
