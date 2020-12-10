@@ -10,7 +10,8 @@
     "rootDir": "./",
     "resolveJsonModule": true,
     "downlevelIteration": true,
-    "lib": ["es2020"]
+    "lib": ["es2020", "dom"],
+    "types": ["jest", "node"]
   },
   "include": ["./package.json", "./src/**/*"]
 }
