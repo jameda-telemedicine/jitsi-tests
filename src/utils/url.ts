@@ -1,4 +1,5 @@
-import { Credentials, InternalJitsiInstance } from '../types';
+import { InternalJitsiInstance, InternalInstance } from '../types/instances';
+import { Credentials } from '../types/providers';
 
 // build Jitsi Meet URL
 export const buildJitsiUrl = (instance: InternalJitsiInstance): string => {
@@ -6,6 +7,16 @@ export const buildJitsiUrl = (instance: InternalJitsiInstance): string => {
   let params = '?analytics.disabled=true';
   if (instance.jwt && instance.jwt !== '') {
     params = `${params}&jwt=${instance.jwt}`;
+  }
+  return `${base}${instance.room}${params}`;
+};
+
+// build standard URL
+export const buildStandardUrl = (instance: InternalInstance): string => {
+  const base = instance.url.endsWith('/') ? instance.url : `${instance.url}/`;
+  let params = '';
+  if (instance.jwt && instance.jwt !== '') {
+    params = `?jwt=${instance.jwt}`;
   }
   return `${base}${instance.room}${params}`;
 };
@@ -51,4 +62,15 @@ export const cencorsSensitiveUrlInformations = (url: string): string => {
   cencoredUrl = cencoredUrl.replace(/jwt=[a-zA-Z0-9-_.]+/g, 'jwt=********');
 
   return cencoredUrl;
+};
+
+export const buildInstanceUrl = (instance: InternalInstance): string => {
+  switch (instance.type) {
+    case 'jitsi':
+      return buildJitsiUrl(instance);
+
+    default:
+  }
+
+  return buildStandardUrl(instance);
 };

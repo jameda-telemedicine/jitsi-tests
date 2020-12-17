@@ -1,15 +1,29 @@
+import { ThenableWebDriver } from 'selenium-webdriver';
+import { BrowserTask } from '../types/browsers';
 import {
-  createTask, parseTasks, resolve, resolveAll, TaskArgs, Task,
+  createTask, parseTasks, resolve, TaskArgs, TaskSystem, createTaskSystem,
 } from './task';
 
 describe('Basic task tests', () => {
+  let taskSystem: TaskSystem;
+  const driver = undefined as unknown as ThenableWebDriver;
+  const browser = undefined as unknown as BrowserTask;
+
+  beforeEach(() => {
+    taskSystem = createTaskSystem();
+  });
+
   test("Resolver for 'default'", async () => {
     const resolvedTask = await resolve('default');
     const args: TaskArgs = {
       name: 'default',
+      participants: 2,
       params: {},
+      driver,
+      browser,
+      debug: false,
     };
-    const task = createTask(resolvedTask, args);
+    const task = createTask(resolvedTask, args, taskSystem);
     await task.run();
   });
 
@@ -20,11 +34,15 @@ describe('Basic task tests', () => {
 
     const args: TaskArgs = {
       name: 'log',
+      participants: 2,
       params: {
         message: 'hello world',
       },
+      driver,
+      browser,
+      debug: false,
     };
-    const task = createTask(resolvedTask, args);
+    const task = createTask(resolvedTask, args, taskSystem);
     await task.run();
 
     expect(console.log).toHaveBeenCalledWith('hello world');
@@ -37,11 +55,15 @@ describe('Basic task tests', () => {
 
     const args: TaskArgs = {
       name: 'log',
+      participants: 2,
       params: {
         message: 'hello world',
       },
+      driver,
+      browser,
+      debug: false,
     };
-    const task = createTask(resolvedTask, args);
+    const task = createTask(resolvedTask, args, taskSystem);
     await task.run({
       message: 'something',
     });
@@ -111,28 +133,5 @@ describe('Basic task tests', () => {
 
   test('Check for empty entries during parse of tasks', () => {
     expect(() => parseTasks(['default', {}])).toThrowError('Empty task entry.');
-  });
-
-  test('Resolve some basic tasks', async () => {
-    console.log = jest.fn();
-
-    const tasks: Task[] = [
-      {
-        log: {
-          message: 'hello',
-        },
-      },
-      {
-        log: {
-          message: 'world',
-        },
-      },
-    ];
-
-    const resolved = resolveAll(tasks);
-    await expect(resolved).resolves.not.toThrow();
-
-    expect(console.log).toHaveBeenNthCalledWith(1, 'hello');
-    expect(console.log).toHaveBeenNthCalledWith(2, 'world');
   });
 });
