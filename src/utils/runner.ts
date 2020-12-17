@@ -8,6 +8,8 @@ import {
   createTaskSystem,
   resolveAndCreateTask,
   TaskArgs,
+  TaskObject,
+  TaskSystem,
 } from '../tasks/task';
 import {
   BrowserTask,
@@ -57,67 +59,87 @@ const addItemsToSuite = (suite: any, items: TestStep[]) => {
   return stats;
 };
 
+const removeBrowserDriver = (browser: InitializedBrowser): BrowserTask => {
+  const internalBrowser: InternalBrowser = browser;
+  delete internalBrowser.driver;
+  return internalBrowser;
+};
+
+type BrowserFlowArgs = {
+  browser: InitializedBrowser;
+  targetUrl: string;
+  participants: number;
+  tasks: TaskObject[];
+  taskSystem: TaskSystem;
+};
+
+const browserFlow = async (args: BrowserFlowArgs) => {
+  const {
+    browser, taskSystem, participants, targetUrl,
+  } = args;
+
+  const { step, end } = startTest(browser.name);
+  const driver = await step('build driver', () => browser.driver.build()) as unknown as ThenableWebDriver;
+  await step('open instance', () => driver.get(targetUrl));
+  const browserTask: BrowserTask = removeBrowserDriver(browser);
+
+  // eslint-disable-next-line no-restricted-syntax
+  for (const task of args.tasks) {
+    const { name } = task;
+
+    const taskArgs: TaskArgs = {
+      name,
+      params: task.params,
+      participants,
+      driver,
+      browser: browserTask,
+      debug: true,
+    };
+
+    await step(name, async () => (await resolveAndCreateTask(task, taskArgs, taskSystem)).run());
+  }
+
+  await Promise.allSettled([driver.close()]);
+  if (!browser.provider.isLocal) {
+    await Promise.allSettled([driver.quit()]);
+  }
+
+  return end();
+};
+
+const initDrivers = (browsers: InternalBrowser[]): InitializedBrowser[] => {
+  const initializedBrowsers: InitializedBrowser[] = [];
+
+  // init drivers
+  browsers.forEach((browser) => {
+    try {
+      initializedBrowsers.push(initDriver(browser));
+    } catch (e) {
+      console.error(`  ERROR: unable to init driver for for ${browser.name} (${browser.type}):`, e.message);
+    }
+  });
+
+  return initializedBrowsers;
+};
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const runTest = async (test: InternalTest, report: any) => {
   console.log(`- Running test: ${test.name}…`);
   const suite = report.testSuite().name(test.name);
-  const browsers: InitializedBrowser[] = [];
-
-  // init drivers
-  test.browsers.forEach((browser) => {
-    console.log(
-      ` - init browser driver for ${browser.name} (${browser.type})…`,
-    );
-
-    const testDriverInit = suite
-      .testCase()
-      .name(`${browser.name} driver initialization`);
-    try {
-      browsers.push(initDriver(browser));
-    } catch (e) {
-      testDriverInit.failure(e.message);
-    }
-  });
-
-  // run test
+  const browsers = initDrivers(test.browsers);
   const { scenario, instance } = test;
   const { tasks } = scenario;
   const targetUrl = buildInstanceUrl(instance);
-  let flowResults: PromiseSettledResult<TestStep[]>[] = [];
-
   const taskSystem = createTaskSystem();
 
-  flowResults = await Promise.allSettled(
-    browsers.map(async (browser) => {
-      const { step, end } = startTest(browser.name);
-      const driver = await step('build driver', () => browser.driver.build()) as unknown as ThenableWebDriver;
-      const internalBrowser: InternalBrowser = browser;
-      delete internalBrowser.driver;
-      const browserTask: BrowserTask = internalBrowser;
-
-      // eslint-disable-next-line no-restricted-syntax
-      for (const task of tasks) {
-        const { name } = task;
-
-        const args: TaskArgs = {
-          name,
-          params: task.params,
-          participants: test.participants,
-          driver,
-          browser: browserTask,
-          debug: true,
-        };
-
-        await step(name, async () => (await resolveAndCreateTask(task, args, taskSystem)).run());
-      }
-
-      await Promise.allSettled([driver.close()]);
-      if (!browser.provider.isLocal) {
-        await Promise.allSettled([driver.quit()]);
-      }
-
-      return end();
-    }),
+  const flowResults = await Promise.allSettled(
+    browsers.map(async (browser) => browserFlow({
+      browser,
+      targetUrl,
+      taskSystem,
+      participants: test.participants,
+      tasks,
+    })),
   );
 
   const suites: TestStep[][] = [];
@@ -125,7 +147,7 @@ const runTest = async (test: InternalTest, report: any) => {
     if (res.status === 'fulfilled') {
       suites.push(res.value);
     } else {
-      console.error('ERROR: something went bad during a browser flow:', res.reason);
+      console.error('  ERROR: something went bad during a browser flow:', res.reason);
     }
   });
 
@@ -141,11 +163,11 @@ export const runTests = async (tests: InternalTest[]): Promise<void> => {
   for (const test of tests) {
     const testStats = await runTest(test, report);
     console.log(
-      ` -> ${testStats.success} success, ${testStats.failure} failed and ${testStats.skipped} skipped`,
+      `  -> ${testStats.success} success, ${testStats.failure} failed and ${testStats.skipped} skipped`,
     );
     if (testStats.failure > 0) {
       console.error(
-        ` --> some tests failed (waiting ${waitTimeAfterFailure}sec)`,
+        `  --> some tests failed (waiting ${waitTimeAfterFailure}sec)`,
       );
       await waitSeconds(waitTimeAfterFailure);
     }
