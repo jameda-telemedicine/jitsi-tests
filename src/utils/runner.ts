@@ -1,11 +1,20 @@
 import { newBuilder } from 'junit-report-builder';
+import { ThenableWebDriver } from 'selenium-webdriver';
 import { waitSeconds } from '../steps/time';
-
-import { jitsiFlow } from '../jitsi/flow';
-import { InitializedBrowser, InternalTest } from '../types';
 import { initDriver } from './driver';
-import { TestStep } from './tests';
-import { buildJitsiUrl } from './url';
+import { startTest, TestStep } from './tests';
+import { buildInstanceUrl } from './url';
+import {
+  createTaskSystem,
+  resolveAndCreateTask,
+  TaskArgs,
+} from '../tasks/task';
+import {
+  BrowserTask,
+  InitializedBrowser,
+  InternalBrowser,
+} from '../types/browsers';
+import { InternalTest } from '../types/tests';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const addItemsToSuite = (suite: any, items: TestStep[]) => {
@@ -50,7 +59,7 @@ const addItemsToSuite = (suite: any, items: TestStep[]) => {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const runTest = async (test: InternalTest, report: any) => {
-  console.log(`Running test: ${test.name}…`);
+  console.log(`- Running test: ${test.name}…`);
   const suite = report.testSuite().name(test.name);
   const browsers: InitializedBrowser[] = [];
 
@@ -71,37 +80,52 @@ const runTest = async (test: InternalTest, report: any) => {
   });
 
   // run test
-  const testTargetInit = suite.testCase().name(`run test ${test.name}`);
+  const { scenario, instance } = test;
+  const { tasks } = scenario;
+  const targetUrl = buildInstanceUrl(instance);
   let flowResults: PromiseSettledResult<TestStep[]>[] = [];
-  try {
-    if (!test.instance) {
-      throw new Error(`no instance defined for the test '${test.name}'`);
-    }
 
-    let targetUrl: string;
-    switch (test.instance.type) {
-      case 'jitsi':
-        targetUrl = buildJitsiUrl(test.instance);
-        flowResults = await Promise.allSettled(
-          browsers.map((browser) => jitsiFlow(browser, targetUrl, test.participants)),
-        );
-        break;
+  const taskSystem = createTaskSystem();
 
-      default:
-        throw new Error(`unsupported instance type (${test.instance.type})`);
-    }
-  } catch (e) {
-    console.error(` - !! FAILED: ${e.message}`);
-    testTargetInit.failure(e.message);
-  }
+  flowResults = await Promise.allSettled(
+    browsers.map(async (browser) => {
+      const { step, end } = startTest(browser.name);
+      const driver = await step('build driver', () => browser.driver.build()) as unknown as ThenableWebDriver;
+      const internalBrowser: InternalBrowser = browser;
+      delete internalBrowser.driver;
+      const browserTask: BrowserTask = internalBrowser;
+
+      // eslint-disable-next-line no-restricted-syntax
+      for (const task of tasks) {
+        const { name } = task;
+
+        const args: TaskArgs = {
+          name,
+          params: task.params,
+          participants: test.participants,
+          driver,
+          browser: browserTask,
+          debug: true,
+        };
+
+        await step(name, async () => (await resolveAndCreateTask(task, args, taskSystem)).run());
+      }
+
+      await Promise.allSettled([driver.close()]);
+      if (!browser.provider.isLocal) {
+        await Promise.allSettled([driver.quit()]);
+      }
+
+      return end();
+    }),
+  );
 
   const suites: TestStep[][] = [];
   flowResults.forEach((res) => {
     if (res.status === 'fulfilled') {
       suites.push(res.value);
     } else {
-      console.log(res.reason);
-      testTargetInit.failure(res.reason.message);
+      console.error('ERROR: something went bad during a browser flow:', res.reason);
     }
   });
 

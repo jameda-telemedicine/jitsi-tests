@@ -3,7 +3,7 @@ import { basicAuthUrl } from './url';
 import {
   Firefox, Chrome, Safari, Edge,
 } from '../browsers';
-import { InitializedBrowser, InternalBrowser, SupportedBrowsers } from '../types';
+import { SupportedBrowsers, InternalBrowser, InitializedBrowser } from '../types/browsers';
 
 // fetch builder for specific browser
 const fetchBrowserDriver = (browserName: SupportedBrowsers, capabilities?: Capabilities) => {

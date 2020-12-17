@@ -1,21 +1,37 @@
+import { ThenableWebDriver } from 'selenium-webdriver';
+import synchro, { BarrierArgs, BarrierPromise } from '../lib/synchro';
+import { BrowserTask } from '../types/browsers';
+
 export type TaskParams = Record<string, string | number>;
 export type Task = string | { [taskName: string]: TaskParams };
-type TaskObject = {
+export type TaskObject = {
   name: string;
   params: TaskParams;
+};
+export type TaskSystem = {
+  barrier: (args: BarrierArgs) => BarrierPromise;
 };
 
 export type TaskArgs = {
   name: string;
   params: TaskParams;
+  participants: number;
+  driver: ThenableWebDriver;
+  browser: BrowserTask;
+  debug: boolean;
 };
 
 export interface TaskInterface {
   args: TaskArgs;
+  system: TaskSystem;
+
   run(params?: TaskParams): Promise<void>;
 }
 
-export type TaskConstructor = new (args: TaskArgs) => TaskInterface;
+export type TaskConstructor = new (
+  args: TaskArgs,
+  system: TaskSystem
+) => TaskInterface;
 
 /**
  * Create a task using a constructor `C` and arguments `args`.
@@ -23,7 +39,11 @@ export type TaskConstructor = new (args: TaskArgs) => TaskInterface;
  * @param C {TaskConstructor} constructor for the task.
  * @param args {TaskArgs} arguments for the task.
  */
-export const createTask = (C: TaskConstructor, args: TaskArgs): TaskInterface => new C(args);
+export const createTask = (
+  C: TaskConstructor,
+  args: TaskArgs,
+  system: TaskSystem,
+): TaskInterface => new C(args, system);
 
 /**
  * Resolve to a task using the name of the task.
@@ -37,11 +57,29 @@ export const resolve = async (taskName: string): Promise<TaskConstructor> => {
     throw new Error(`Task '${taskName}' is not allowed for use.`);
   }
 
-  if (taskName.endsWith('.test') || taskName.endsWith('.test.ts')) {
-    throw new Error(`Not allowed to resolve a test file (${taskName}) as a task.`);
+  if (taskName.endsWith('.test') || taskName.endsWith('.test.ts') || taskName.endsWith('.test.js')) {
+    throw new Error(
+      `Not allowed to resolve a test file (${taskName}) as a task.`,
+    );
   }
 
   return (await import(`./${taskName}`)).default;
+};
+
+/**
+ * Resolve and create a task.
+ *
+ * @param taskObject an object representing the task read from the configuration file.
+ * @param args arguments for the task.
+ * @param system system utils that the task can use
+ */
+export const resolveAndCreateTask = async (
+  taskObject: TaskObject,
+  args: TaskArgs,
+  system: TaskSystem,
+): Promise<TaskInterface> => {
+  const resolvedTask = await resolve(taskObject.name);
+  return createTask(resolvedTask, args, system);
 };
 
 /**
@@ -49,46 +87,39 @@ export const resolve = async (taskName: string): Promise<TaskConstructor> => {
  *
  * @param tasks tasks to parse.
  */
-export const parseTasks = (tasks: Task[]): TaskObject[] => tasks.map((task: Task): TaskObject => {
-  let name: string;
-  let params: TaskParams = {};
+export const parseTasks = (tasks: Task[]): TaskObject[] => tasks.map(
+  (task: Task): TaskObject => {
+    let name: string;
+    let params: TaskParams = {};
 
-  if (typeof task === 'string') {
-    name = task;
-  } else {
-    const entries = Object.entries(task);
-    if (entries.length < 1) {
-      throw new Error('Empty task entry.');
-    } else if (entries.length > 1) {
-      throw new Error('Bad task entry.');
+    if (typeof task === 'string') {
+      name = task;
+    } else {
+      const entries = Object.entries(task);
+      if (entries.length < 1) {
+        throw new Error('Empty task entry.');
+      } else if (entries.length > 1) {
+        throw new Error('Bad task entry.');
+      }
+      const [objectTaskName, objectTaskParams] = entries[0];
+      name = objectTaskName;
+      params = objectTaskParams;
     }
-    const [objectTaskName, objectTaskParams] = entries[0];
-    name = objectTaskName;
-    params = objectTaskParams;
-  }
 
-  return {
-    name,
-    params,
-  };
-});
+    return {
+      name,
+      params,
+    };
+  },
+);
 
 /**
- * Resolve all tasks.
- *
- * @param tasks tasks to resolve.
+ * Create a new TaskSystem.
  */
-export const resolveAll = async (tasks: Task[]): Promise<void> => {
-  const taskObjects = parseTasks(tasks);
+export const createTaskSystem = (): TaskSystem => {
+  const { barrier } = synchro();
 
-  // eslint-disable-next-line no-restricted-syntax
-  for (const task of taskObjects) {
-    const resolvedTask: TaskConstructor = await resolve(task.name);
-    const args: TaskArgs = {
-      name: task.name,
-      params: task.params,
-    };
-    const dynamicTask = createTask(resolvedTask, args);
-    await dynamicTask.run();
-  }
+  return {
+    barrier,
+  };
 };

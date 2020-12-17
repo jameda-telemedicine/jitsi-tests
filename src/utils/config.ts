@@ -5,19 +5,15 @@ import addFormats from 'ajv-formats';
 
 import { panic } from './utils';
 import schema from './schema';
-import {
-  Config,
-  ConfigurationFile,
-  DynamicString,
-  ExternalProvider,
-  Instance,
-  InternalBrowser,
-  InternalInstance,
-  InternalTest,
-  isDynamicString,
-  Provider,
-  Test,
-} from '../types';
+import { Config } from '../types';
+import { parseTasks } from '../tasks/task';
+import { DynamicString, isDynamicString } from '../types/strings';
+import { InternalBrowser } from '../types/browsers';
+import { ConfigurationFile } from '../types/config';
+import { Instance, InternalInstance } from '../types/instances';
+import { Provider, ExternalProvider } from '../types/providers';
+import { Scenario, InternalScenario } from '../types/scenarios';
+import { Test, InternalTest } from '../types/tests';
 
 // TODO: configure them using the configuration file
 export const config: Config = {
@@ -31,6 +27,7 @@ const loadConfig = (configFile: string): ConfigurationFile => {
   let configData: ConfigurationFile = {
     providers: [],
     instances: [],
+    scenarios: [],
     tests: [],
   };
 
@@ -98,9 +95,33 @@ const checkInstances = (configData: ConfigurationFile) => {
 
   if (invalidInstances.size > 0) {
     const invalidInstanceList = Array.from(invalidInstances)
-      .map((instance) => instance.instance)
+      .map((t) => t.instance)
       .join(', ');
     panic(`Use of following undefined instances: ${invalidInstanceList}`);
+  }
+};
+
+// some checks on scenarios
+const checkScenarios = (configData: ConfigurationFile) => {
+  const scenarios = new Set(
+    configData.scenarios.map((scenario) => scenario.name),
+  );
+
+  // check that each scenario are defined only one time
+  if (scenarios.size !== configData.scenarios.length) {
+    panic('Some scenarios are defined multiple time');
+  }
+
+  // check if all used scenario are defined
+  const invalidScenarios = new Set(
+    configData.tests.filter((t) => !scenarios.has(t.scenario)),
+  );
+
+  if (invalidScenarios.size > 0) {
+    const invalidScenarioList = Array.from(invalidScenarios)
+      .map((t) => t.scenario)
+      .join(', ');
+    panic(`Use of following undefined scenarios: ${invalidScenarioList}`);
   }
 };
 
@@ -193,16 +214,35 @@ const findInstanceData = (
   return instanceList[0];
 };
 
+// find scenario data
+const findScenarioData = (
+  scenarios: Scenario[],
+  name: string,
+): InternalScenario => {
+  const scenarioList = scenarios.filter((scenario) => scenario.name === name);
+  if (scenarioList.length === 0) {
+    panic(`could not find scenario '${name}'`);
+  }
+  const scenario = scenarioList[0];
+
+  return {
+    name: scenario.name,
+    tasks: parseTasks(scenario.tasks),
+  };
+};
+
 // add new fields and resolve provider for each browser for each test
 const resolveTests = (
   tests: Test[],
   providers: Provider[],
   instances: InternalInstance[],
+  scenarios: Scenario[],
 ): InternalTest[] => tests.map(
   (test): InternalTest => ({
     ...test,
     participants: test.browsers.length,
     instance: findInstanceData(instances, test.instance),
+    scenario: findScenarioData(scenarios, test.scenario),
     browsers: test.browsers.map(
       (browser): InternalBrowser => ({
         ...browser,
@@ -215,13 +255,18 @@ const resolveTests = (
 // parse configuration file to get tests to be executed
 export const parseConfig = (configFile: string): InternalTest[] => {
   const configData = loadConfig(configFile);
+
   validateConfig(configData);
+
   checkProviders(configData);
   checkInstances(configData);
+  checkScenarios(configData);
 
   const providers = resolveProviders(configData.providers);
   const instances = resolveInstances(configData.instances);
-  const tests = resolveTests(configData.tests, providers, instances);
+  const { scenarios } = configData;
+
+  const tests = resolveTests(configData.tests, providers, instances, scenarios);
 
   return tests;
 };

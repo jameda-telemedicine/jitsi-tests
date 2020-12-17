@@ -12,7 +12,7 @@ import {
   JitsiStats,
 } from './stats';
 import { takeScreenshot } from '../steps/screenshot';
-import { InitializedBrowser } from '../types';
+import { InitializedBrowser } from '../types/browsers';
 import {
   DISPLAY_NAME_INPUT, PREJOIN_DISPLAY_NAME_INPUT, TOOLBOX_BUTTON, VIDEO,
 } from './css';

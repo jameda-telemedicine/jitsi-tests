@@ -32,6 +32,16 @@ const schema = {
       required: [],
       additionalProperties: false,
     },
+    task: {
+      anyOf: [
+        { $ref: '#/definitions/notEmptyString' },
+        {
+          type: 'object',
+          minProperties: 1,
+          maxProperties: 1,
+        },
+      ],
+    },
   },
   type: 'object',
   properties: {
@@ -106,6 +116,21 @@ const schema = {
         ],
       },
     },
+    scenarios: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          name: { $ref: '#/definitions/notEmptyString' },
+          tasks: {
+            type: 'array',
+            items: { $ref: '#/definitions/task' },
+          },
+        },
+        required: ['name', 'tasks'],
+        additionalProperties: false,
+      },
+    },
     tests: {
       type: 'array',
       items: {
@@ -113,6 +138,7 @@ const schema = {
         properties: {
           name: { $ref: '#/definitions/notEmptyString' },
           instance: { $ref: '#/definitions/notEmptyString' },
+          scenario: { $ref: '#/definitions/notEmptyString' },
           browsers: {
             type: 'array',
             items: {
@@ -131,12 +157,12 @@ const schema = {
             },
           },
         },
-        required: ['name', 'instance', 'browsers'],
+        required: ['name', 'instance', 'scenario', 'browsers'],
         additionalProperties: false,
       },
     },
   },
-  required: ['instances', 'providers', 'tests'],
+  required: ['instances', 'providers', 'scenarios', 'tests'],
   additionalProperties: false,
 };
 

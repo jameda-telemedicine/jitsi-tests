@@ -1,4 +1,4 @@
-import synchro, { BarrierArgs } from '../lib/synchro';
+import { BarrierArgs } from '../lib/synchro';
 import DefaultTask from './default';
 import { TaskParams } from './task';
 
@@ -6,7 +6,7 @@ import { TaskParams } from './task';
  * Synchronization task.
  *
  * @param {string} name name of the barrier.
- * @param {number} counter number of time it should be called before continuing.
+ * @param {number} [counter] number of time it should be called before continuing.
  * @param {number} [timeout] the time in milliseconds before timeout.
  */
 class SynchroTask extends DefaultTask {
@@ -18,13 +18,24 @@ class SynchroTask extends DefaultTask {
       throw new Error('No name was specified.');
     }
 
-    // barrier should have a count
+    const { name, timeout } = this.args.params;
+    let counter = +this.args.params.counter;
+
+    // barrier should have a counter
     if (!Object.prototype.hasOwnProperty.call(this.args.params, 'counter')) {
-      throw new Error('No counter was specified.');
+      counter = +this.args.participants;
     }
 
-    const { barrier } = synchro();
-    await barrier(this.args.params as BarrierArgs);
+    const args: BarrierArgs = {
+      name: `${name}`,
+      counter,
+    };
+
+    if (timeout) {
+      args.timeout = +timeout;
+    }
+
+    await this.system.barrier(args as BarrierArgs);
   }
 }
 

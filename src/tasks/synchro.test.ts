@@ -1,40 +1,47 @@
+import { ThenableWebDriver } from 'selenium-webdriver';
+import { BrowserTask } from '../types/browsers';
 import SynchroTask from './synchro';
-import { createTask, TaskArgs } from './task';
+import {
+  createTaskSystem, createTask, TaskArgs, TaskSystem,
+} from './task';
 
 describe('SynchroTask tests', () => {
+  let taskSystem: TaskSystem;
+  const driver = undefined as unknown as ThenableWebDriver;
+  const browser = undefined as unknown as BrowserTask;
+
+  beforeEach(() => {
+    taskSystem = createTaskSystem();
+  });
+
   test('Run the task', async () => {
     const args: TaskArgs = {
       name: 'synchro',
+      participants: 1,
       params: {
         name: 'synchro',
         counter: 1,
       },
+      driver,
+      browser,
+      debug: false,
     };
-    const task = createTask(SynchroTask, args);
+    const task = createTask(SynchroTask, args, taskSystem);
     await task.run();
-  });
-
-  test('Throw if no counter was specified', async () => {
-    const args: TaskArgs = {
-      name: 'synchro',
-      params: {
-        name: 'synchro',
-      },
-    };
-    const task = createTask(SynchroTask, args);
-    const run = task.run();
-
-    expect(run).rejects.toThrowError('No counter was specified.');
   });
 
   test('Throw if no name was specified', async () => {
     const args: TaskArgs = {
       name: 'synchro',
+      participants: 1,
       params: {
         counter: 1,
       },
+      driver,
+      browser,
+      debug: false,
     };
-    const task = createTask(SynchroTask, args);
+    const task = createTask(SynchroTask, args, taskSystem);
     const run = task.run();
 
     expect(run).rejects.toThrowError('No name was specified.');
