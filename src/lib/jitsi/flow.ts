@@ -1,9 +1,9 @@
 import { By, Key, WebElement } from 'selenium-webdriver';
 
-import { startTest, TestStep } from '../utils/tests';
-import { verifyVideoDisplayByIndex } from '../steps/video';
-import { waitSeconds } from '../steps/time';
-import { getCurrentUrl } from '../steps/url';
+import { startTest, TestStep } from '../../utils/tests';
+import { verifyVideoDisplayByIndex } from '../../steps/video';
+import { waitSeconds } from '../../steps/time';
+import { getCurrentUrl } from '../../steps/url';
 import {
   setupStats,
   updateStats,
@@ -11,8 +11,8 @@ import {
   filterStats,
   JitsiStats,
 } from './stats';
-import { takeScreenshot } from '../steps/screenshot';
-import { InitializedBrowser } from '../types/browsers';
+import { takeScreenshot } from '../../steps/screenshot';
+import { InitializedBrowser } from '../../types/browsers';
 import {
   DISPLAY_NAME_INPUT, PREJOIN_DISPLAY_NAME_INPUT, TOOLBOX_BUTTON, VIDEO,
 } from './css';

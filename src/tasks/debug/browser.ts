@@ -1,7 +1,7 @@
 import DefaultTask from '../default';
 import { TaskParams } from '../task';
 
-class DebugBrowser extends DefaultTask {
+class DebugBrowserTask extends DefaultTask {
   async run(params?: TaskParams): Promise<void> {
     await super.run(params);
 
@@ -10,4 +10,4 @@ class DebugBrowser extends DefaultTask {
   }
 }
 
-export default DebugBrowser;
+export default DebugBrowserTask;

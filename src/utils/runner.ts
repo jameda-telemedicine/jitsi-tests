@@ -93,7 +93,7 @@ const browserFlow = async (args: BrowserFlowArgs) => {
       participants,
       driver,
       browser: browserTask,
-      debug: true,
+      debug: false,
     };
 
     await step(name, async () => (await resolveAndCreateTask(task, taskArgs, taskSystem)).run());

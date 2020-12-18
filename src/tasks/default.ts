@@ -1,3 +1,4 @@
+import { waitSeconds } from '../steps/time';
 import {
   TaskInterface, TaskArgs, TaskParams, TaskSystem,
 } from './task';
@@ -24,6 +25,7 @@ class DefaultTask implements TaskInterface {
       console.log(
         `  - Running task '${this.args.name}' for browser '${this.args.browser.name}'…`,
       );
+      await waitSeconds(1);
     }
   }
 }
