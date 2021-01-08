@@ -13,21 +13,8 @@ class JitsiPromptTask extends DefaultTask {
   async run(params?: TaskParams): Promise<void> {
     await super.run(params);
 
-    let required = true;
+    const required = this.getBooleanArg('required', true);
     const displayName = this.getStringArg('displayName', `${this.args.browser.name} (jitsi-tests)`);
-
-    // check if the prejoin page is required (by default) or not
-    if (Object.prototype.hasOwnProperty.call(this.args.params, 'required')) {
-      try {
-        required = JSON.parse(
-          `${this.args.params.required}`.toLocaleLowerCase(),
-        );
-      } catch (_e) {
-        throw new Error(
-          "Invalid value for 'required' parameter. Should be 'true' or 'false'.",
-        );
-      }
-    }
 
     // find the displayName input
     const displayNameInput = await this.args.driver.findElements(

@@ -22,20 +22,8 @@ class JitsiVideoNumberTask extends DefaultTask {
     const retries = this.getNumericArg('retries', 20);
     const interval = this.getNumericArg('interval', 500);
     const required = this.getNumericArg('required', this.args.participants + 1);
-    let exact = false;
+    const exact = this.getBooleanArg('exact', false);
     const role = this.getStringArg('role');
-
-    if (Object.prototype.hasOwnProperty.call(this.args.params, 'exact')) {
-      try {
-        exact = JSON.parse(
-          `${this.args.params.exact}`.toLocaleLowerCase(),
-        );
-      } catch (_e) {
-        throw new Error(
-          "Invalid value for 'exact' parameter. Should be 'true' or 'false'.",
-        );
-      }
-    }
 
     if (!['', browserRole].includes(role)) {
       return;
@@ -45,7 +33,15 @@ class JitsiVideoNumberTask extends DefaultTask {
 
     for (let i = 0; i < retries; i += 1) {
       const videos = await this.args.driver.findElements(By.css(VIDEO));
-      const displayedVideos = await Promise.all(videos.map(async (video) => video.isDisplayed()));
+      let displayedVideos: boolean[] = [];
+
+      try {
+        displayedVideos = await Promise.all(videos.map(async (video) => video.isDisplayed()));
+      } catch (e) {
+        if (!`${e.message}`.startsWith('stale element reference')) {
+          throw e;
+        }
+      }
 
       videosCount = displayedVideos.reduce((count: number, displayed: boolean) => {
         if (displayed) {

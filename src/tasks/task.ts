@@ -27,8 +27,9 @@ export interface TaskInterface {
 
   run(params?: TaskParams): Promise<void>;
   getBrowserRole(): string;
-  getStringArg(name: string, defaultValue: string): string;
-  getNumericArg(name: string, defaultValue: number): number;
+  getStringArg(name: string, defaultValue?: string): string;
+  getNumericArg(name: string, defaultValue?: number): number;
+  getBooleanArg(name: string, defaultValue: boolean): boolean;
 }
 
 export type TaskConstructor = new (

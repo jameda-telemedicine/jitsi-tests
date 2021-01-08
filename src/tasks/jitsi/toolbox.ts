@@ -11,16 +11,7 @@ class JitsiToolboxTask extends DefaultTask {
   async run(params?: TaskParams): Promise<void> {
     await super.run(params);
 
-    let visible = true;
-
-    // check if a value was provided
-    if (Object.prototype.hasOwnProperty.call(this.args.params, 'visible')) {
-      if (this.args.params.visible) {
-        visible = JSON.parse(
-          `${this.args.params.visible}`.toLocaleLowerCase(),
-        );
-      }
-    }
+    const visible = this.getBooleanArg('visible', true);
 
     await this.args.driver.executeScript(
       `APP.store.dispatch({ type: 'SET_TOOLBOX_ALWAYS_VISIBLE', alwaysVisible: ${visible} })`,
