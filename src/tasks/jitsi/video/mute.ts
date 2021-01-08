@@ -13,18 +13,11 @@ class JitsiVideoMuteTask extends DefaultTask {
   async run(params?: TaskParams): Promise<void> {
     await super.run(params);
 
-    let role = '';
+    const role = this.getStringArg('role');
 
     const muteVideoText = await this.args.driver.executeScript(
       `return $.i18n.t('${MUTE_VIDEO}');`,
     );
-
-    // check if a role was provided
-    if (Object.prototype.hasOwnProperty.call(this.args.params, 'role')) {
-      if (this.args.params.role) {
-        role = `${this.args.params.role}`;
-      }
-    }
 
     if (role === '' || role === this.args.browser.role) {
       await this.args.driver

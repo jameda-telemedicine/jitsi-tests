@@ -23,7 +23,7 @@ class JitsiVideoNumberTask extends DefaultTask {
     let interval = 500;
     let required = this.args.participants + 1;
     let exact = false;
-    let role = '';
+    const role = this.getStringArg('role');
 
     if (Object.prototype.hasOwnProperty.call(this.args.params, 'retries')) {
       if (this.args.params.retries) {
@@ -52,12 +52,6 @@ class JitsiVideoNumberTask extends DefaultTask {
         throw new Error(
           "Invalid value for 'exact' parameter. Should be 'true' or 'false'.",
         );
-      }
-    }
-
-    if (Object.prototype.hasOwnProperty.call(this.args.params, 'role')) {
-      if (this.args.params.role) {
-        role = `${this.args.params.role}`;
       }
     }
 
