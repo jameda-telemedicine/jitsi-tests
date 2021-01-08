@@ -6,6 +6,7 @@ export type SupportedBrowsers = 'chrome' | 'edge' | 'firefox' | 'safari';
 type BaseBrowser<P> = {
   name: string;
   type: SupportedBrowsers;
+  role?: string;
   capabilities?: Capabilities;
   provider: P;
 };

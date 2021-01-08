@@ -5,7 +5,6 @@ import addFormats from 'ajv-formats';
 
 import { panic } from './utils';
 import schema from './schema';
-import { Config } from '../types';
 import { parseTasks } from '../tasks/task';
 import { DynamicString, isDynamicString } from '../types/strings';
 import { InternalBrowser } from '../types/browsers';
@@ -14,13 +13,6 @@ import { Instance, InternalInstance } from '../types/instances';
 import { Provider, ExternalProvider } from '../types/providers';
 import { Scenario, InternalScenario } from '../types/scenarios';
 import { Test, InternalTest } from '../types/tests';
-
-// TODO: configure them using the configuration file
-export const config: Config = {
-  base: `${process.env.JITSI_BASE}`,
-  room: `${process.env.JITSI_ROOM}`,
-  jwt: `${process.env.JITSI_JWT}`,
-};
 
 // load configuration file
 const loadConfig = (configFile: string): ConfigurationFile => {

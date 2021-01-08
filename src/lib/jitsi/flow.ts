@@ -16,7 +16,7 @@ import { InitializedBrowser } from '../../types/browsers';
 import {
   DISPLAY_NAME_INPUT, PREJOIN_DISPLAY_NAME_INPUT, TOOLBOX_BUTTON, VIDEO,
 } from './css';
-import { HANGUP_BUTTON_TEXT } from './translations';
+import { HANGUP_BUTTON } from './translations';
 
 export const jitsiFlow = async (
   browser: InitializedBrowser,
@@ -158,7 +158,7 @@ export const jitsiFlow = async (
     await waitSeconds(2);
 
     const endCallText = await step('find translation for hangup', () => driver.executeScript(
-      `return $.i18n.t('${HANGUP_BUTTON_TEXT}');`,
+      `return $.i18n.t('${HANGUP_BUTTON}');`,
     ));
 
     flowLog('end the call');
