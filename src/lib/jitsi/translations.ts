@@ -1,3 +1,4 @@
 // manage translation keys
 
-export const HANGUP_BUTTON_TEXT = 'toolbar.accessibilityLabel.hangup';
+export const HANGUP_BUTTON = 'toolbar.accessibilityLabel.hangup';
+export const MUTE_VIDEO = 'toolbar.accessibilityLabel.videomute';

@@ -1,6 +1,6 @@
 import { By } from 'selenium-webdriver';
 import { TOOLBOX_BUTTON } from '../../lib/jitsi/css';
-import { HANGUP_BUTTON_TEXT } from '../../lib/jitsi/translations';
+import { HANGUP_BUTTON } from '../../lib/jitsi/translations';
 import DefaultTask from '../default';
 import { TaskParams } from '../task';
 
@@ -9,7 +9,7 @@ class JitsiHangupTask extends DefaultTask {
     await super.run(params);
 
     const endCallText = await this.args.driver.executeScript(
-      `return $.i18n.t('${HANGUP_BUTTON_TEXT}');`,
+      `return $.i18n.t('${HANGUP_BUTTON}');`,
     );
 
     await this.args.driver

@@ -146,6 +146,7 @@ const schema = {
               properties: {
                 name: { $ref: '#/definitions/notEmptyString' },
                 type: { $ref: '#/definitions/browserType' },
+                role: { $ref: '#/definitions/notEmptyString' },
                 provider: { $ref: '#/definitions/notEmptyString' },
                 capabilities: {
                   type: 'object',
