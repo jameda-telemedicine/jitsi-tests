@@ -38,6 +38,24 @@ class DefaultTask implements TaskInterface {
 
     return browserRole;
   }
+
+  /**
+   * Get the string value of an argument.
+   *
+   * @param {string} name name of the argument key.
+   * @param {string} [defaultValue=''] default value.
+   */
+  getStringArg(name: string, defaultValue = ''): string {
+    let arg = defaultValue;
+
+    if (Object.prototype.hasOwnProperty.call(this.args.params, name)) {
+      if (this.args.params[name]) {
+        arg = `${this.args.params[name]}`;
+      }
+    }
+
+    return arg;
+  }
 }
 
 export default DefaultTask;

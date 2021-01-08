@@ -26,6 +26,8 @@ export interface TaskInterface {
   system: TaskSystem;
 
   run(params?: TaskParams): Promise<void>;
+  getBrowserRole(): string;
+  getStringArg(name: string, defaultValue: string): string;
 }
 
 export type TaskConstructor = new (
