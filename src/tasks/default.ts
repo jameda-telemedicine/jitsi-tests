@@ -74,6 +74,30 @@ class DefaultTask implements TaskInterface {
 
     return arg;
   }
+
+  /**
+   * Get the boolean value of an argument.
+   *
+   * @param {string} name name of the argument key.
+   * @param {boolean} defaultValue default value.
+   */
+  getBooleanArg(name: string, defaultValue: boolean): boolean {
+    let arg = defaultValue;
+
+    if (Object.prototype.hasOwnProperty.call(this.args.params, name)) {
+      try {
+        arg = JSON.parse(
+          `${this.args.params[name]}`.toLocaleLowerCase(),
+        );
+      } catch (_e) {
+        throw new Error(
+          `Invalid value for '${name}' parameter. Should be 'true' or 'false'.`,
+        );
+      }
+    }
+
+    return arg;
+  }
 }
 
 export default DefaultTask;
