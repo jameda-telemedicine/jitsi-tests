@@ -11,13 +11,7 @@ class JitsiVideoCheckTask extends DefaultTask {
   async run(params?: TaskParams): Promise<void> {
     await super.run(params);
 
-    let number = this.args.participants + 1;
-
-    if (Object.prototype.hasOwnProperty.call(this.args.params, 'number')) {
-      if (this.args.params.number) {
-        number = +this.args.params.number;
-      }
-    }
+    const number = this.getNumericArg('number', this.args.participants + 1);
 
     const videoCheck = await Promise.allSettled(
       [...Array(number).keys()].map((i) => verifyVideoDisplayByIndex(this.args.driver, i)),

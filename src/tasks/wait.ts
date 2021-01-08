@@ -10,14 +10,7 @@ import { TaskParams } from './task';
 class WaitTask extends DefaultTask {
   async run(params?: TaskParams): Promise<void> {
     await super.run(params);
-
-    let time = 1_000;
-
-    // check if a time was provided
-    if (Object.prototype.hasOwnProperty.call(this.args.params, 'time')) {
-      time = +this.args.params.time;
-    }
-
+    const time = this.getNumericArg('time', 1_000);
     await wait(time);
   }
 }

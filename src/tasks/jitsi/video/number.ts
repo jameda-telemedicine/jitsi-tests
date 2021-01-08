@@ -19,29 +19,11 @@ class JitsiVideoNumberTask extends DefaultTask {
 
     const browserRole = this.getBrowserRole();
 
-    let retries = 20;
-    let interval = 500;
-    let required = this.args.participants + 1;
+    const retries = this.getNumericArg('retries', 20);
+    const interval = this.getNumericArg('interval', 500);
+    const required = this.getNumericArg('required', this.args.participants + 1);
     let exact = false;
     const role = this.getStringArg('role');
-
-    if (Object.prototype.hasOwnProperty.call(this.args.params, 'retries')) {
-      if (this.args.params.retries) {
-        retries = +this.args.params.retries;
-      }
-    }
-
-    if (Object.prototype.hasOwnProperty.call(this.args.params, 'interval')) {
-      if (this.args.params.interval) {
-        interval = +this.args.params.interval;
-      }
-    }
-
-    if (Object.prototype.hasOwnProperty.call(this.args.params, 'required')) {
-      if (this.args.params.required) {
-        required = +this.args.params.required;
-      }
-    }
 
     if (Object.prototype.hasOwnProperty.call(this.args.params, 'exact')) {
       try {
