@@ -56,6 +56,24 @@ class DefaultTask implements TaskInterface {
 
     return arg;
   }
+
+  /**
+   * Get the numeric value of an argument.
+   *
+   * @param {string} name name of the argument key.
+   * @param {number} [defaultValue=0] default value.
+   */
+  getNumericArg(name: string, defaultValue = 0): number {
+    let arg = defaultValue;
+
+    if (Object.prototype.hasOwnProperty.call(this.args.params, name)) {
+      if (this.args.params[name]) {
+        arg = +this.args.params[name];
+      }
+    }
+
+    return arg;
+  }
 }
 
 export default DefaultTask;
