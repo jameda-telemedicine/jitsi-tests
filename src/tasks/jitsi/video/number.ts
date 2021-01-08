@@ -17,6 +17,8 @@ class JitsiVideoNumberTask extends DefaultTask {
   async run(params?: TaskParams): Promise<void> {
     await super.run(params);
 
+    const browserRole = this.getBrowserRole();
+
     let retries = 20;
     let interval = 500;
     let required = this.args.participants + 1;
@@ -59,7 +61,7 @@ class JitsiVideoNumberTask extends DefaultTask {
       }
     }
 
-    if (role !== '' && role !== this.args.browser.role) {
+    if (!['', browserRole].includes(role)) {
       return;
     }
 
@@ -67,7 +69,14 @@ class JitsiVideoNumberTask extends DefaultTask {
 
     for (let i = 0; i < retries; i += 1) {
       const videos = await this.args.driver.findElements(By.css(VIDEO));
-      videosCount = videos.length;
+      const displayedVideos = await Promise.all(videos.map(async (video) => video.isDisplayed()));
+
+      videosCount = displayedVideos.reduce((count: number, displayed: boolean) => {
+        if (displayed) {
+          return count + 1;
+        }
+        return count;
+      }, 0);
 
       if (videosCount < required) {
         await wait(interval);

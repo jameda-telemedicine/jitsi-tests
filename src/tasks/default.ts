@@ -28,6 +28,16 @@ class DefaultTask implements TaskInterface {
       await waitSeconds(1);
     }
   }
+
+  getBrowserRole(): string {
+    let browserRole = '';
+
+    if (this.args.browser.role) {
+      browserRole = `${this.args.browser.role}`;
+    }
+
+    return browserRole;
+  }
 }
 
 export default DefaultTask;
