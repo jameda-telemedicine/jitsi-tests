@@ -9,9 +9,55 @@ instances:
     room:
       name: jitsi-tests-room
 
+scenarios:
+  - name: Jitsi Meet Base
+    tasks:
+      # wait that all browser are at this point before continuing
+      - synchro:
+          name: wait-init
+          timeout: 30000 # 30 seconds
+
+      # fill display name if required
+      - jitsi/prejoin:
+          required: false
+      - jitsi/prompt:
+          required: false
+
+      # force the display of the toolbox (all buttons at the bottom)
+      - jitsi/toolbox
+
+      # wait that all browsers have set their display name
+      - synchro:
+          name: wait-display-name
+          timeout: 5000 # 5 seconds
+
+      # some checks on videos
+      - jitsi/video/number
+
+      # wait that all browsers finished to do some checks on videos
+      - synchro:
+          name: wait-videos
+          timeout: 5000 # 5 seconds
+
+      - jitsi/stats
+
+      # wait that all browsers finished to do some checks on webrtc stats
+      - synchro:
+          name: wait-stats
+          timeout: 5000 # 5 seconds
+
+      # click on the hangup button
+      - jitsi/hangup
+
+      # wait that all browsers are at this point
+      - synchro:
+          name: wait-end
+          timeout: 15000 # 15 seconds
+
 tests:
   - name: Chrome - Chrome
     instance: Jitsi Meet
+    scenario: Jitsi Meet Base
     browsers:
       - name: Chrome 1
         type: chrome
@@ -22,6 +68,7 @@ tests:
 
   - name: Chrome - Firefox
     instance: Jitsi Meet
+    scenario: Jitsi Meet Base
     browsers:
       - name: Chrome
         type: chrome
@@ -32,6 +79,7 @@ tests:
 
   - name: Firefox - Firefox
     instance: Jitsi Meet
+    scenario: Jitsi Meet Base
     browsers:
       - name: Firefox 1
         type: firefox
