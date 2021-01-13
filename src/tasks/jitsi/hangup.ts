@@ -12,9 +12,10 @@ class JitsiHangupTask extends DefaultTask {
       `return $.i18n.t('${HANGUP_BUTTON}');`,
     );
 
-    await this.args.driver
-      .findElement(By.css(`${TOOLBOX_BUTTON}[aria-label="${endCallText}"]`))
-      .click();
+    const hangupButton = await this.args.driver
+      .findElement(By.css(`${TOOLBOX_BUTTON}[aria-label="${endCallText}"]`));
+
+    await this.args.driver.executeScript('arguments[0].click()', hangupButton);
   }
 }
 

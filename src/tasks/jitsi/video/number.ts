@@ -38,7 +38,7 @@ class JitsiVideoNumberTask extends DefaultTask {
       try {
         displayedVideos = await Promise.all(videos.map(async (video) => video.isDisplayed()));
       } catch (e) {
-        if (!`${e.message}`.startsWith('stale element reference')) {
+        if (!`${e.message}`.includes('stale')) {
           throw e;
         }
       }
