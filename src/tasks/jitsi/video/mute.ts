@@ -20,9 +20,10 @@ class JitsiVideoMuteTask extends DefaultTask {
     );
 
     if (role === '' || role === this.args.browser.role) {
-      await this.args.driver
-        .findElement(By.css(`${TOOLBOX_BUTTON}[aria-label="${muteVideoText}"]`))
-        .click();
+      const muteButton = await this.args.driver
+        .findElement(By.css(`${TOOLBOX_BUTTON}[aria-label="${muteVideoText}"]`));
+
+      await this.args.driver.executeScript('arguments[0].click()', muteButton);
     }
   }
 }
