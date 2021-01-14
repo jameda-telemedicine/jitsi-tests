@@ -1,7 +1,7 @@
 import {
   setupStats, updateStats, fetchStats, filterStats,
 } from '../../lib/jitsi/stats';
-import { waitSeconds } from '../../steps/time';
+import { waitSeconds } from '../../lib/time';
 import DefaultTask from '../default';
 import { TaskParams } from '../task';
 

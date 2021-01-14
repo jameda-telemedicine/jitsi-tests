@@ -1,6 +1,6 @@
 import { newBuilder } from 'junit-report-builder';
 import { ThenableWebDriver } from 'selenium-webdriver';
-import { waitSeconds } from '../steps/time';
+import { waitSeconds } from '../lib/time';
 import { initDriver } from './driver';
 import { startTest, TestStep } from './tests';
 import { buildInstanceUrl } from './url';

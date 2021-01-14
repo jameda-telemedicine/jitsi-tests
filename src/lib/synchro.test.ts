@@ -1,4 +1,4 @@
-import { wait } from '../steps/time';
+import { wait } from './time';
 import synchro, { BarrierArgs, BarrierCreator } from './synchro';
 
 describe('Basic barrier tests', () => {
