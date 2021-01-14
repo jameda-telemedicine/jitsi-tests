@@ -11,7 +11,6 @@ import {
   filterStats,
   JitsiStats,
 } from './stats';
-import { takeScreenshot } from '../../steps/screenshot';
 import { InitializedBrowser } from '../../types/browsers';
 import {
   DISPLAY_NAME_INPUT, PREJOIN_DISPLAY_NAME_INPUT, TOOLBOX_BUTTON, VIDEO,
@@ -45,8 +44,6 @@ export const jitsiFlow = async (
     await step('set toolbox always visible', () => driver.executeScript(
       "APP.store.dispatch({ type: 'SET_TOOLBOX_ALWAYS_VISIBLE', alwaysVisible: true })",
     ));
-
-    await Promise.allSettled([takeScreenshot(driver)]);
 
     await waitSeconds(2);
 
@@ -95,8 +92,6 @@ export const jitsiFlow = async (
         break;
       }
     }
-
-    await Promise.allSettled([takeScreenshot(driver)]);
 
     await step(
       'check number of videos',
