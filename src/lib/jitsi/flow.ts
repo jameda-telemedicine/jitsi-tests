@@ -3,7 +3,6 @@ import { By, Key, WebElement } from 'selenium-webdriver';
 import { startTest, TestStep } from '../../utils/tests';
 import { verifyVideoDisplayByIndex } from './video';
 import { waitSeconds } from '../time';
-import { getCurrentUrl } from '../../steps/url';
 import {
   setupStats,
   updateStats,
@@ -34,10 +33,6 @@ export const jitsiFlow = async (
 
   try {
     await step('get driver', () => driver.get(target));
-
-    // print current url into the console
-    const currentUrl = await step('get current url', () => getCurrentUrl(driver));
-    flowLog('opened URL: ', currentUrl);
 
     await waitSeconds(2);
 
