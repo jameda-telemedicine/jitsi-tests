@@ -1,4 +1,4 @@
-import { wait } from '../steps/time';
+import { wait } from '../lib/time';
 import DefaultTask from './default';
 import { TaskParams } from './task';
 

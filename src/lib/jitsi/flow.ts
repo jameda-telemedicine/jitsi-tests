@@ -2,7 +2,7 @@ import { By, Key, WebElement } from 'selenium-webdriver';
 
 import { startTest, TestStep } from '../../utils/tests';
 import { verifyVideoDisplayByIndex } from './video';
-import { waitSeconds } from '../../steps/time';
+import { waitSeconds } from '../time';
 import { getCurrentUrl } from '../../steps/url';
 import {
   setupStats,

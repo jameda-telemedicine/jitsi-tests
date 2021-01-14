@@ -1,4 +1,4 @@
-import { waitSeconds } from '../steps/time';
+import { waitSeconds } from '../lib/time';
 import {
   TaskInterface, TaskArgs, TaskParams, TaskSystem,
 } from './task';

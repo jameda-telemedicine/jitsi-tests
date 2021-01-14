@@ -1,6 +1,6 @@
 import { By } from 'selenium-webdriver';
 import { VIDEO } from '../../../lib/jitsi/css';
-import { wait } from '../../../steps/time';
+import { wait } from '../../../lib/time';
 import DefaultTask from '../../default';
 import { TaskParams } from '../../task';
 
