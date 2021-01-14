@@ -1,4 +1,4 @@
-import { verifyVideoDisplayByIndex } from '../../../steps/video';
+import { verifyVideoDisplayByIndex } from '../../../lib/jitsi/video';
 import DefaultTask from '../../default';
 import { TaskParams } from '../../task';
 

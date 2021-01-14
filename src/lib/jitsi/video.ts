@@ -1,5 +1,5 @@
 import { ThenableWebDriver } from 'selenium-webdriver';
-import { waitSeconds } from './time';
+import { waitSeconds } from '../../steps/time';
 
 export type AllowedVideoPixelResult = 'ok' | 'blank' | 'still';
 
