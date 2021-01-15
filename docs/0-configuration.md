@@ -182,6 +182,7 @@ The type `Browser` is an `object` with following keys:
 Here are some useful ressources to help you define some `capabilities` (used to specify OS, versions, … to use):
 
 - https://w3c.github.io/webdriver/#capabilities
+- https://www.browserstack.com/automate/capabilities?tag=selenium-4
 - https://www.browserstack.com/automate/selenium-4#selenium4-updating-standard
 
 You do not need to define a `browserName` capability, since it's already deducted from the value of `type`.
