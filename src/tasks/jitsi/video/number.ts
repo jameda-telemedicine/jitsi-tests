@@ -10,7 +10,7 @@ import { TaskParams } from '../../task';
  * @param {number} [retries=20] number of allowed retries.
  * @param {number} [interval=500] interval in milliseconds between each retry.
  * @param {number} [required] number of videos that should be present (default: nb_participants+1).
- * @param {boolean} [exact] the number of video should be exactly the required one (default: false).
+ * @param {boolean} [exact] the number of video should be exactly the required one (default: true).
  * @param {string} [role] if provided, this task wil be run only on browsers having the role.
  */
 class JitsiVideoNumberTask extends DefaultTask {
@@ -22,7 +22,7 @@ class JitsiVideoNumberTask extends DefaultTask {
     const retries = this.getNumericArg('retries', 20);
     const interval = this.getNumericArg('interval', 500);
     const required = this.getNumericArg('required', this.args.participants + 1);
-    const exact = this.getBooleanArg('exact', false);
+    const exact = this.getBooleanArg('exact', true);
     const role = this.getStringArg('role');
 
     if (!['', browserRole].includes(role)) {
