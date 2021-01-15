@@ -15,7 +15,7 @@ scenarios:
       # wait that all browser are at this point before continuing
       - synchro:
           name: wait-init
-          timeout: 30000 # 30 seconds
+          timeout: 120000 # 2 minutes
 
       # fill display name if required
       - jitsi/prejoin:
