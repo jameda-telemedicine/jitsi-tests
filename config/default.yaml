@@ -32,7 +32,8 @@ scenarios:
           timeout: 5000 # 5 seconds
 
       # some checks on videos
-      - jitsi/video/number
+      - jitsi/video/number:
+          exact: false
 
       # wait that all browsers finished to do some checks on videos
       - synchro:
