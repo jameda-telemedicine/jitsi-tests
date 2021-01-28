@@ -148,7 +148,11 @@ This provider is an `object` with following keys:
 The type `Room` can be:
 
 - a [DynamicString](#DynamicString)
-- an `object` with a key called `name` that have a value of type `string`
+- an `object` with following keys:
+  - `name` that have a value of type [DynamicString](#DynamicString) (required)
+  - `randomSuffix` that have a value of type `boolean`
+
+If you want to have a random suffix, you have to use the `object` form, and set `randomSuffix` to `true`.
 
 ### Instance
 

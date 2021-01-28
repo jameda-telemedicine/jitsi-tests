@@ -40,5 +40,4 @@ Documentation can be found here: [./docs/](./docs/).
 
 ## Known limitations
 
-- random room names are not supported
 - only support for Jitsi Meet instances
