@@ -35,7 +35,9 @@ const loadConfig = (configFile: string): ConfigurationFile => {
 
 // make the program crash if the config file is invalid
 const validateConfig = (configData: ConfigurationFile) => {
-  const ajv = new Ajv();
+  const ajv = new Ajv({
+    removeAdditional: 'failing',
+  });
   addFormats(ajv);
   const validate = ajv.compile(schema);
   const valid = validate(configData);
@@ -168,11 +170,15 @@ const resolveProviders = (providers: Provider[]): Provider[] => providers.map((p
 const resolveInstances = (instances: Instance[]): InternalInstance[] => instances.map((instance) => {
   const { room } = instance;
   let roomName = 'test-room';
+  let randomSuffix = false;
 
   if (isDynamicString(room)) {
     roomName = resolveDynamicString(room);
   } else {
     roomName = resolveDynamicString(room.name);
+    if (room.randomSuffix) {
+      randomSuffix = room.randomSuffix;
+    }
   }
 
   return {
@@ -182,6 +188,7 @@ const resolveInstances = (instances: Instance[]): InternalInstance[] => instance
     type: instance.type,
     jwt: resolveDynamicString(instance.jwt || ''),
     room: roomName,
+    randomSuffix,
   };
 });
 

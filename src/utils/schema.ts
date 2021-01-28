@@ -1,4 +1,6 @@
-const schema = {
+import type { Schema } from 'ajv';
+
+const schema: Schema = {
   definitions: {
     browserType: {
       anyOf: [
@@ -63,6 +65,7 @@ const schema = {
                     type: 'object',
                     properties: {
                       name: { $ref: '#/definitions/dynamicString' },
+                      randomSuffix: { type: 'boolean' },
                     },
                     required: ['name'],
                     additionalProperties: false,

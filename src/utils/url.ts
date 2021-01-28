@@ -4,11 +4,22 @@ import { Credentials } from '../types/providers';
 // build Jitsi Meet URL
 export const buildJitsiUrl = (instance: InternalJitsiInstance): string => {
   const base = instance.url.endsWith('/') ? instance.url : `${instance.url}/`;
+
+  let randomSuffix = '';
+  if (instance.randomSuffix) {
+    if (!instance.room.endsWith('-')) {
+      randomSuffix = '-';
+    }
+    const randomNumber = Math.floor(Math.random() * 1_000_000_000);
+    randomSuffix = `${randomSuffix}${randomNumber}`;
+  }
+
   let params = '?analytics.disabled=true';
   if (instance.jwt && instance.jwt !== '') {
     params = `${params}&jwt=${instance.jwt}`;
   }
-  return `${base}${instance.room}${params}`;
+
+  return `${base}${instance.room}${randomSuffix}${params}`;
 };
 
 // build standard URL

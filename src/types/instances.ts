@@ -1,7 +1,8 @@
 import type { DynamicString } from './strings';
 
 export type InstanceRoom = DynamicString | {
-  name: DynamicString
+  name: DynamicString;
+  randomSuffix?: boolean;
 };
 
 export type BaseInstance = {
@@ -22,6 +23,7 @@ export type InternalJitsiInstance = BaseJitsiInstance & {
   url: string;
   jwt: string;
   room: string;
+  randomSuffix: boolean;
 };
 
 export type Instance = JitsiInstance;
