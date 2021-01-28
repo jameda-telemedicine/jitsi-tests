@@ -5,7 +5,9 @@
 ## Supported features
 
 - authentication using JWT token
-- analytics are disabled for tests
+- parallel tests
+- random suffix for Jitsi Meet room names
+- analytics are disabled for Jitsi Meet tests
 - on a same test, a browser can be run from:
   - local WebDriver
   - any Selenium Hub (support for multiple hubs + authenticated hubs)
