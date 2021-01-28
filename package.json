@@ -4,7 +4,8 @@
   "description": "",
   "main": "./dist/src/index.js",
   "scripts": {
-    "start": "npm run build && node --require dotenv/config ./dist/src/index.js",
+    "start": "npm run build && npm run start:nobuild",
+    "start:nobuild": "node --require dotenv/config ./dist/src/index.js",
     "clean": "tsc --build --clean",
     "build": "tsc --pretty",
     "test": "jest",
