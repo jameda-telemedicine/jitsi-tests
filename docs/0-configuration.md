@@ -162,7 +162,10 @@ The type `Instance` is an `object` with following keys:
 - `type`, with value equals to `jitsi` (required)
 - `url`, with value of type `string` that should be a valid base URL of a Jitsi Meet instance (required)
 - `jwt`, with value of type [DynamicString](#DynamicString)
+- `parallel`, with a value of type `boolean`
 - `room`, with value of type [Room](#Room) (required)
+
+If `parallel` is set to `true`, tests can be run in parallel.
 
 ### Browser
 

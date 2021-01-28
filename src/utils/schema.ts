@@ -58,6 +58,7 @@ const schema: Schema = {
               type: { const: 'jitsi' },
               url: { $ref: '#/definitions/dynamicString' },
               jwt: { $ref: '#/definitions/dynamicString' },
+              parallel: { type: 'boolean' },
               room: {
                 anyOf: [
                   { $ref: '#/definitions/dynamicString' },

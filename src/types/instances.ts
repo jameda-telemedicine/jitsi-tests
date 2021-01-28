@@ -7,6 +7,7 @@ export type InstanceRoom = DynamicString | {
 
 export type BaseInstance = {
   name: DynamicString;
+  parallel?: boolean;
 };
 
 export type BaseJitsiInstance = BaseInstance & {

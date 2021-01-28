@@ -159,8 +159,18 @@ export const runTests = async (tests: InternalTest[]): Promise<void> => {
   const waitTimeAfterFailure = 60;
   const report = newBuilder();
 
+  const parallelTests = tests.filter((test) => test.instance.parallel);
+  const nonParallelTests = tests.filter((test) => !test.instance.parallel);
+
+  await Promise.all(parallelTests.map(async (test) => {
+    const testStats = await runTest(test, report);
+    console.log(
+      `  -> ${testStats.success} success, ${testStats.failure} failed and ${testStats.skipped} skipped (${test.name})`,
+    );
+  }));
+
   // eslint-disable-next-line no-restricted-syntax
-  for (const test of tests) {
+  for (const test of nonParallelTests) {
     const testStats = await runTest(test, report);
     console.log(
       `  -> ${testStats.success} success, ${testStats.failure} failed and ${testStats.skipped} skipped`,
