@@ -16,7 +16,7 @@ class JitsiPromptTask extends DefaultTask {
   async run(params?: TaskParams): Promise<void> {
     await super.run(params);
 
-    const retries = this.getNumericArg('retries', 5);
+    const retries = this.getNumericArg('retries', 20);
     const interval = this.getNumericArg('interval', 500);
     const required = this.getBooleanArg('required', true);
     const displayName = this.getStringArg('displayName', `${this.args.browser.name} (jitsi-tests)`);
