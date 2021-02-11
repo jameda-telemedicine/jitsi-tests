@@ -11,7 +11,7 @@ export type TaskObject = {
 };
 export type TaskSystem = {
   barrier: (args: BarrierArgs) => BarrierPromise;
-  globalStorage: Map<string, string>;
+  storage: Map<string, string>;
 };
 
 export type TaskArgs = {
@@ -127,10 +127,10 @@ export const parseTasks = (tasks: Task[]): TaskObject[] => tasks.map(
  */
 export const createTaskSystem = (): TaskSystem => {
   const { barrier } = synchro();
-  const globalStorage = new Map<string, string>();
+  const storage = new Map<string, string>();
 
   return {
     barrier,
-    globalStorage,
+    storage,
   };
 };
