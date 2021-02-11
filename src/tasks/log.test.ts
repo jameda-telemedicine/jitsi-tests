@@ -11,6 +11,7 @@ describe('LogTask tests', () => {
   let driver: ThenableWebDriver;
   let browser: BrowserTask;
   let instance: InternalInstance;
+  const storage = new Map<string, string>();
 
   beforeEach(() => {
     taskSystem = createTaskSystem();
@@ -29,6 +30,9 @@ describe('LogTask tests', () => {
       browser,
       debug: false,
       instance,
+      browserIndex: 0,
+      taskIndex: 0,
+      storage,
     };
     const task = createTask(LogTask, args, taskSystem);
     await task.run();
@@ -45,6 +49,9 @@ describe('LogTask tests', () => {
       browser,
       debug: false,
       instance,
+      browserIndex: 0,
+      taskIndex: 0,
+      storage,
     };
     const task = createTask(LogTask, args, taskSystem);
     const run = task.run();

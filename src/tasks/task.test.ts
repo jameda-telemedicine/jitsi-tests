@@ -10,6 +10,7 @@ describe('Basic task tests', () => {
   let driver: ThenableWebDriver;
   let browser: BrowserTask;
   let instance: InternalInstance;
+  const storage = new Map<string, string>();
 
   beforeEach(() => {
     taskSystem = createTaskSystem();
@@ -25,6 +26,9 @@ describe('Basic task tests', () => {
       browser,
       debug: false,
       instance,
+      browserIndex: 0,
+      taskIndex: 0,
+      storage,
     };
     const task = createTask(resolvedTask, args, taskSystem);
     await task.run();
@@ -45,6 +49,9 @@ describe('Basic task tests', () => {
       browser,
       debug: false,
       instance,
+      browserIndex: 0,
+      taskIndex: 0,
+      storage,
     };
     const task = createTask(resolvedTask, args, taskSystem);
     await task.run();
@@ -67,6 +74,9 @@ describe('Basic task tests', () => {
       browser,
       debug: false,
       instance,
+      browserIndex: 0,
+      taskIndex: 0,
+      storage,
     };
     const task = createTask(resolvedTask, args, taskSystem);
     await task.run({

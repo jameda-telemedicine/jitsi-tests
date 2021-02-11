@@ -11,6 +11,7 @@ describe('SynchroTask tests', () => {
   let driver: ThenableWebDriver;
   let browser: BrowserTask;
   let instance: InternalInstance;
+  const storage = new Map<string, string>();
 
   beforeEach(() => {
     taskSystem = createTaskSystem();
@@ -28,6 +29,9 @@ describe('SynchroTask tests', () => {
       browser,
       debug: false,
       instance,
+      browserIndex: 0,
+      taskIndex: 0,
+      storage,
     };
     const task = createTask(SynchroTask, args, taskSystem);
     await task.run();
@@ -44,6 +48,9 @@ describe('SynchroTask tests', () => {
       browser,
       debug: false,
       instance,
+      browserIndex: 0,
+      taskIndex: 0,
+      storage,
     };
     const task = createTask(SynchroTask, args, taskSystem);
     const run = task.run();
