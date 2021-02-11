@@ -7,9 +7,9 @@ import {
 
 describe('Basic task tests', () => {
   let taskSystem: TaskSystem;
-  const driver = undefined as unknown as ThenableWebDriver;
-  const browser = undefined as unknown as BrowserTask;
-  const instance = undefined as unknown as InternalInstance;
+  let driver: ThenableWebDriver;
+  let browser: BrowserTask;
+  let instance: InternalInstance;
 
   beforeEach(() => {
     taskSystem = createTaskSystem();
