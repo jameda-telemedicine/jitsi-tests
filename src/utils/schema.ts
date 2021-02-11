@@ -152,6 +152,7 @@ const schema: Schema = {
                 type: { $ref: '#/definitions/browserType' },
                 role: { $ref: '#/definitions/notEmptyString' },
                 provider: { $ref: '#/definitions/notEmptyString' },
+                headless: { type: 'boolean' },
                 capabilities: {
                   type: 'object',
                   additionalProperties: true,

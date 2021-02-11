@@ -1,23 +1,25 @@
 import { Builder, Capabilities } from 'selenium-webdriver';
 import browser from 'selenium-webdriver/firefox';
+import { BrowserConfig } from '../types/browsers';
 
 const browserName = 'firefox';
 
-const options = new browser.Options();
-options.setPreference('media.navigator.permission.disabled', true);
-options.setPreference('media.navigator.streams.fake', true);
+const fetchBuilder = (config: BrowserConfig, capabilities?: Capabilities): Builder => {
+  const options = new browser.Options();
+  options.setPreference('media.navigator.permission.disabled', true);
+  options.setPreference('media.navigator.streams.fake', true);
 
-const fetchBuilder = (capabilities?: Capabilities): Builder => {
   let builder = new Builder();
   if (capabilities) {
     builder = builder.withCapabilities(capabilities);
+  }
+  if (config.headless) {
+    options.headless();
   }
   return builder.forBrowser(browserName).setFirefoxOptions(options);
 };
 
 export default {
-  browser,
   browserName,
-  options,
   fetchBuilder,
 };

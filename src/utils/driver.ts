@@ -3,22 +3,24 @@ import { basicAuthUrl } from './url';
 import {
   Firefox, Chrome, Safari, Edge,
 } from '../browsers';
-import { SupportedBrowsers, InternalBrowser, InitializedBrowser } from '../types/browsers';
+import {
+  SupportedBrowsers, InternalBrowser, InitializedBrowser, BrowserConfig,
+} from '../types/browsers';
 
 // fetch builder for specific browser
-const fetchBrowserDriver = (browserName: SupportedBrowsers, capabilities?: Capabilities) => {
+const fetchBrowserDriver = (browserName: SupportedBrowsers, config: BrowserConfig, capabilities?: Capabilities) => {
   switch (browserName) {
     case 'firefox':
-      return Firefox.fetchBuilder(capabilities);
+      return Firefox.fetchBuilder(config, capabilities);
 
     case 'chrome':
-      return Chrome.fetchBuilder(capabilities);
+      return Chrome.fetchBuilder(config, capabilities);
 
     case 'safari':
-      return Safari.fetchBuilder(capabilities);
+      return Safari.fetchBuilder(config, capabilities);
 
     case 'edge':
-      return Edge.fetchBuilder(capabilities);
+      return Edge.fetchBuilder(config, capabilities);
 
     default:
       throw new Error(`unsupported browser type: '${browserName}'`);
@@ -27,9 +29,11 @@ const fetchBrowserDriver = (browserName: SupportedBrowsers, capabilities?: Capab
 
 // initialize driver for a browser
 export const initDriver = (browser: InternalBrowser): InitializedBrowser => {
-  const driver = fetchBrowserDriver(browser.type, browser.capabilities);
-  const { provider } = browser;
-
+  const {
+    provider, headless, type, capabilities,
+  } = browser;
+  const browserConfig: BrowserConfig = { headless };
+  const driver = fetchBrowserDriver(type, browserConfig, capabilities);
   const initializedBrowser: InitializedBrowser = { ...browser, driver };
 
   let url;

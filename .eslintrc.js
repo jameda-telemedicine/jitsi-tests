@@ -15,6 +15,7 @@ module.exports = {
     "no-await-in-loop": "off",
     "import/prefer-default-export": "off",
     "no-console": "off",
+    "max-len": "off",
     "no-param-reassign": ["error", { props: false }],
   },
   ignorePatterns: ["dist", ".eslintrc.js", "babel.config.js"],

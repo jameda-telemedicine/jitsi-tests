@@ -7,6 +7,7 @@ type BaseBrowser<P> = {
   name: string;
   type: SupportedBrowsers;
   role?: string;
+  headless: boolean;
   capabilities?: Capabilities;
   provider: P;
 };
@@ -22,3 +23,7 @@ export type InitializedBrowser = BaseBrowser<Provider> & {
 };
 
 export type BrowserTask = BaseBrowser<Provider>;
+
+export type BrowserConfig = {
+  headless: boolean;
+};

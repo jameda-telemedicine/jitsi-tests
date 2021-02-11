@@ -246,6 +246,7 @@ const resolveTests = (
       (browser): InternalBrowser => ({
         ...browser,
         provider: findProviderData(providers, browser.provider),
+        headless: browser.headless || false,
       }),
     ),
   }),
