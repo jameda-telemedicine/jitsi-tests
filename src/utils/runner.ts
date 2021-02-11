@@ -131,6 +131,17 @@ const runTest = async (test: InternalTest, report: any) => {
   const suite = report.testSuite().name(test.name);
   const browsers = initDrivers(test.browsers);
   const { scenario, instance } = test;
+  const { room } = instance;
+
+  if (instance.randomSuffix) {
+    let randomSuffix = '';
+    if (!room.endsWith('-')) {
+      randomSuffix = '-';
+    }
+    const randomNumber = Math.floor(Math.random() * 1_000_000_000);
+    instance.room = `${room}${randomSuffix}${randomNumber}`;
+  }
+
   const { tasks } = scenario;
   const targetUrl = buildInstanceUrl(instance);
   const taskSystem = createTaskSystem();
