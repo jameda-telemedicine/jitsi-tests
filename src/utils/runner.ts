@@ -85,6 +85,7 @@ const browserFlow = async (args: BrowserFlowArgs) => {
   const driver = await step('build driver', () => browser.driver.build()) as unknown as ThenableWebDriver;
   await step('open instance', () => driver.get(targetUrl));
   const browserTask: BrowserTask = removeBrowserDriver(browser);
+  const storage = new Map<string, string>();
 
   let i = 0;
   for (const task of args.tasks) {
@@ -100,6 +101,7 @@ const browserFlow = async (args: BrowserFlowArgs) => {
       instance,
       browserIndex,
       taskIndex: i,
+      storage,
     };
 
     i += 1;

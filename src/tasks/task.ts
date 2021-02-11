@@ -24,6 +24,7 @@ export type TaskArgs = {
   instance: InternalInstance;
   browserIndex: number;
   taskIndex: number;
+  storage: Map<string, string>;
 };
 
 export interface TaskInterface {
