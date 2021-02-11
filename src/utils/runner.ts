@@ -73,11 +73,12 @@ type BrowserFlowArgs = {
   tasks: TaskObject[];
   taskSystem: TaskSystem;
   instance: InternalInstance;
+  browserIndex: number;
 };
 
 const browserFlow = async (args: BrowserFlowArgs) => {
   const {
-    browser, taskSystem, participants, targetUrl, instance,
+    browser, taskSystem, participants, targetUrl, instance, browserIndex,
   } = args;
 
   const { step, end } = startTest(browser.name);
@@ -85,7 +86,7 @@ const browserFlow = async (args: BrowserFlowArgs) => {
   await step('open instance', () => driver.get(targetUrl));
   const browserTask: BrowserTask = removeBrowserDriver(browser);
 
-  // eslint-disable-next-line no-restricted-syntax
+  let i = 0;
   for (const task of args.tasks) {
     const { name } = task;
 
@@ -97,7 +98,11 @@ const browserFlow = async (args: BrowserFlowArgs) => {
       browser: browserTask,
       debug: false,
       instance,
+      browserIndex,
+      taskIndex: i,
     };
+
+    i += 1;
 
     await step(name, async () => (await resolveAndCreateTask(task, taskArgs, taskSystem)).run());
   }
@@ -147,13 +152,14 @@ const runTest = async (test: InternalTest, report: any) => {
   const taskSystem = createTaskSystem();
 
   const flowResults = await Promise.allSettled(
-    browsers.map(async (browser) => browserFlow({
+    browsers.map(async (browser, browserIndex) => browserFlow({
       browser,
       targetUrl,
       taskSystem,
       participants: test.participants,
       tasks,
       instance,
+      browserIndex,
     })),
   );
 

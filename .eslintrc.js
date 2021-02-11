@@ -16,6 +16,7 @@ module.exports = {
     "import/prefer-default-export": "off",
     "no-console": "off",
     "max-len": "off",
+    "no-restricted-syntax": "off",
     "no-param-reassign": ["error", { props: false }],
   },
   ignorePatterns: ["dist", ".eslintrc.js", "babel.config.js"],
