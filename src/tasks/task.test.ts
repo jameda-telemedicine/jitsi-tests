@@ -1,5 +1,6 @@
 import { ThenableWebDriver } from 'selenium-webdriver';
 import { BrowserTask } from '../types/browsers';
+import { InternalInstance } from '../types/instances';
 import {
   createTask, parseTasks, resolve, TaskArgs, TaskSystem, createTaskSystem,
 } from './task';
@@ -8,6 +9,7 @@ describe('Basic task tests', () => {
   let taskSystem: TaskSystem;
   const driver = undefined as unknown as ThenableWebDriver;
   const browser = undefined as unknown as BrowserTask;
+  const instance = undefined as unknown as InternalInstance;
 
   beforeEach(() => {
     taskSystem = createTaskSystem();
@@ -22,6 +24,7 @@ describe('Basic task tests', () => {
       driver,
       browser,
       debug: false,
+      instance,
     };
     const task = createTask(resolvedTask, args, taskSystem);
     await task.run();
@@ -41,6 +44,7 @@ describe('Basic task tests', () => {
       driver,
       browser,
       debug: false,
+      instance,
     };
     const task = createTask(resolvedTask, args, taskSystem);
     await task.run();
@@ -62,6 +66,7 @@ describe('Basic task tests', () => {
       driver,
       browser,
       debug: false,
+      instance,
     };
     const task = createTask(resolvedTask, args, taskSystem);
     await task.run({

@@ -17,6 +17,7 @@ import {
   InternalBrowser,
 } from '../types/browsers';
 import { InternalTest } from '../types/tests';
+import { InternalInstance } from '../types/instances';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const addItemsToSuite = (suite: any, items: TestStep[]) => {
@@ -71,11 +72,12 @@ type BrowserFlowArgs = {
   participants: number;
   tasks: TaskObject[];
   taskSystem: TaskSystem;
+  instance: InternalInstance;
 };
 
 const browserFlow = async (args: BrowserFlowArgs) => {
   const {
-    browser, taskSystem, participants, targetUrl,
+    browser, taskSystem, participants, targetUrl, instance,
   } = args;
 
   const { step, end } = startTest(browser.name);
@@ -94,6 +96,7 @@ const browserFlow = async (args: BrowserFlowArgs) => {
       driver,
       browser: browserTask,
       debug: false,
+      instance,
     };
 
     await step(name, async () => (await resolveAndCreateTask(task, taskArgs, taskSystem)).run());
@@ -139,6 +142,7 @@ const runTest = async (test: InternalTest, report: any) => {
       taskSystem,
       participants: test.participants,
       tasks,
+      instance,
     })),
   );
 

@@ -1,5 +1,6 @@
 import { ThenableWebDriver } from 'selenium-webdriver';
 import { BrowserTask } from '../types/browsers';
+import { InternalInstance } from '../types/instances';
 import SynchroTask from './synchro';
 import {
   createTaskSystem, createTask, TaskArgs, TaskSystem,
@@ -9,6 +10,7 @@ describe('SynchroTask tests', () => {
   let taskSystem: TaskSystem;
   const driver = undefined as unknown as ThenableWebDriver;
   const browser = undefined as unknown as BrowserTask;
+  const instance = undefined as unknown as InternalInstance;
 
   beforeEach(() => {
     taskSystem = createTaskSystem();
@@ -25,6 +27,7 @@ describe('SynchroTask tests', () => {
       driver,
       browser,
       debug: false,
+      instance,
     };
     const task = createTask(SynchroTask, args, taskSystem);
     await task.run();
@@ -40,6 +43,7 @@ describe('SynchroTask tests', () => {
       driver,
       browser,
       debug: false,
+      instance,
     };
     const task = createTask(SynchroTask, args, taskSystem);
     const run = task.run();

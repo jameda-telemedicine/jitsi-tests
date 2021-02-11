@@ -16,7 +16,6 @@ const fetchBuilder = (config: BrowserConfig, capabilities?: Capabilities): Build
     builder = builder.withCapabilities(capabilities);
   }
   if (config.headless) {
-    console.log(config.headless);
     options.headless();
   }
   return builder.forBrowser(browserName).setChromeOptions(options);

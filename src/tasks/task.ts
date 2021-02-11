@@ -1,6 +1,7 @@
 import { ThenableWebDriver } from 'selenium-webdriver';
 import synchro, { BarrierArgs, BarrierPromise } from '../lib/synchro';
 import { BrowserTask } from '../types/browsers';
+import { InternalInstance } from '../types/instances';
 
 export type TaskParams = Record<string, string | number>;
 export type Task = string | { [taskName: string]: TaskParams };
@@ -19,6 +20,7 @@ export type TaskArgs = {
   driver: ThenableWebDriver;
   browser: BrowserTask;
   debug: boolean;
+  instance: InternalInstance;
 };
 
 export interface TaskInterface {
