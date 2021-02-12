@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import { resolveDynamicString } from '../../utils/config';
 import { buildJitsiUrl } from '../../utils/url';
 import DefaultTask from '../default';
 import { TaskParams } from '../task';
@@ -27,7 +28,7 @@ class JitsiJwtTask extends DefaultTask {
     const { instance } = this.args;
     const { room } = instance;
 
-    const secret = this.getStringArg('secret');
+    const secret = resolveDynamicString(this.args.params.secret as string || '');
     const expiresIn = this.getStringArg('duration', '1h');
     const aud = this.getStringArg('audience');
     const iss = this.getStringArg('issuer');

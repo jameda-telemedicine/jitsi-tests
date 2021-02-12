@@ -120,7 +120,7 @@ const checkScenarios = (configData: ConfigurationFile) => {
 };
 
 // resolve dynamic strings
-const resolveDynamicString = (item: DynamicString): string => {
+export const resolveDynamicString = (item: DynamicString): string => {
   if (!item || typeof item === 'string') {
     return item;
   }
