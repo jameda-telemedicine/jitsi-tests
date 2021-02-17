@@ -1,3 +1,4 @@
+import { BarrierArgs } from '../lib/synchro';
 import { waitSeconds } from '../lib/time';
 import {
   TaskInterface, TaskArgs, TaskParams, TaskSystem,
@@ -97,6 +98,22 @@ class DefaultTask implements TaskInterface {
     }
 
     return arg;
+  }
+
+  /**
+   * Helper to use the barrier library.
+   *
+   * @param {number} [timeout=1000] time before timeout in milliseconds.
+   * @param {string} [name] name of the synchronization barrier.
+   * @param {number} [counter] exact number of barrier call.
+   */
+  async synchro(timeout?: number, name?: string, counter?: number): Promise<void> {
+    const args: BarrierArgs = {
+      timeout: timeout || 1_000,
+      name: name || `synchro-task-${this.args.taskIndex}`,
+      counter: counter || this.args.participants,
+    };
+    await this.system.barrier(args);
   }
 }
 

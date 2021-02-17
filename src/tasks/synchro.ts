@@ -1,4 +1,3 @@
-import { BarrierArgs } from '../lib/synchro';
 import DefaultTask from './default';
 import { TaskParams } from './task';
 
@@ -26,16 +25,12 @@ class SynchroTask extends DefaultTask {
       counter = +this.args.participants;
     }
 
-    const args: BarrierArgs = {
-      name: `${name}`,
-      counter,
-    };
-
+    let synchroTimeout = 1_000;
     if (timeout) {
-      args.timeout = +timeout;
+      synchroTimeout = +timeout;
     }
 
-    await this.system.barrier(args as BarrierArgs);
+    await this.synchro(synchroTimeout, `${name}`, counter);
   }
 }
 
