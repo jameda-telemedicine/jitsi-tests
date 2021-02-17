@@ -17,6 +17,7 @@ module.exports = {
     "no-console": "off",
     "max-len": "off",
     "no-restricted-syntax": "off",
+    "no-non-null-assertion": "false",
     "no-param-reassign": ["error", { props: false }],
   },
   ignorePatterns: ["dist", ".eslintrc.js", "babel.config.js"],
