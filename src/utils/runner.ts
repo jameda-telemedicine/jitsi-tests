@@ -199,10 +199,16 @@ export const runTests = async (tests: InternalTest[]): Promise<void> => {
       `  -> ${testStats.success} success, ${testStats.failure} failed and ${testStats.skipped} skipped`,
     );
     if (testStats.failure > 0) {
-      console.error(
-        `  --> some tests failed (waiting ${waitTimeAfterFailure}sec)`,
-      );
-      await waitSeconds(waitTimeAfterFailure);
+      if (test.instance.randomSuffix) {
+        console.error(
+          `  --> some tests failed`,
+        );
+      } else {
+        console.error(
+          `  --> some tests failed (waiting ${waitTimeAfterFailure}sec)`,
+        );
+        await waitSeconds(waitTimeAfterFailure);
+      }
     }
   }
 
