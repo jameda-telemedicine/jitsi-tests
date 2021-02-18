@@ -1,10 +1,10 @@
 import { By, WebElement } from 'selenium-webdriver';
-import { TOOLBOX_BUTTON } from '../../../lib/jitsi/css';
+import { TOOLBOX_BUTTON, VIDEO } from '../../../lib/jitsi/css';
 import {
   fetchStats, setupStats, updateStats, filterStats, JitsiStatsItemOutboundRtp, isInboundRtp, isVideo, isOutboundRtp,
 } from '../../../lib/jitsi/stats';
 import { MUTE_VIDEO } from '../../../lib/jitsi/translations';
-import { waitSeconds } from '../../../lib/time';
+import { wait, waitSeconds } from '../../../lib/time';
 import DefaultTask from '../../default';
 import { TaskParams } from '../../task';
 
@@ -61,6 +61,40 @@ class JitsiVideoToggleTask extends DefaultTask {
     return videoStats;
   }
 
+  async checkVideos(): Promise<number> {
+    let videosCount = 0;
+    const retries = 10;
+    const interval = 500;
+
+    for (let i = 0; i < retries; i += 1) {
+      const videos = await this.args.driver.findElements(By.css(VIDEO));
+      let displayedVideos: boolean[] = [];
+
+      try {
+        displayedVideos = await Promise.all(videos.map(async (video) => video.isDisplayed()));
+      } catch (e) {
+        if (!`${e.message}`.includes('stale')) {
+          throw e;
+        }
+      }
+
+      videosCount = displayedVideos.reduce((count: number, displayed: boolean) => {
+        if (displayed) {
+          return count + 1;
+        }
+        return count;
+      }, 0);
+
+      if (videosCount < this.args.participants + 1) {
+        await wait(interval);
+      } else {
+        break;
+      }
+    }
+
+    return videosCount;
+  }
+
   async run(params?: TaskParams): Promise<void> {
     await super.run(params);
 
@@ -105,6 +139,7 @@ class JitsiVideoToggleTask extends DefaultTask {
     // if (stats.in <= 0 || stats.out <= 0) {
     //   throw new Error(`[Init] Expected to send and receive video bytes. Stats: ${JSON.stringify(stats)}`);
     // }
+    const initialVideoCount = await this.checkVideos();
 
     /**
      * Mute part.
@@ -121,6 +156,14 @@ class JitsiVideoToggleTask extends DefaultTask {
     // if (stats.in <= 0 || stats.out <= 0) {
     //   throw new Error(`[Muted] Expected to send and receive video bytes. Stats: ${JSON.stringify(stats)}`);
     // }
+    const mutedVideoCount = await this.checkVideos();
+    const expectedVideoCount = initialVideoCount - mainCount - 1; // video preview
+    if (mutedVideoCount < expectedVideoCount) {
+      throw new Error(`[Muted] Got ${mutedVideoCount} videos, but at least ${expectedVideoCount} was expected.`);
+    }
+    if (mutedVideoCount >= initialVideoCount) {
+      throw new Error(`[Muted] Got ${mutedVideoCount} videos ; no video was muted.`);
+    }
 
     /**
      * Unmute part.
@@ -133,10 +176,15 @@ class JitsiVideoToggleTask extends DefaultTask {
     await this.synchro(15_000, `${taskName}-unmute-end`);
 
     // check if all is working again as at the beginning.
+    await waitSeconds(2);
     // stats = await this.checkStats();
     // if (stats.in <= 0 || stats.out <= 0) {
     //   throw new Error(`[End of test] Expected to send and receive video bytes. Stats: ${JSON.stringify(stats)}`);
     // }
+    const unmutedVideoCount = await this.checkVideos();
+    if (unmutedVideoCount !== initialVideoCount) {
+      throw new Error(`[End of test] Got ${unmutedVideoCount}, but exactly ${initialVideoCount} was expected.`);
+    }
 
     await this.synchro(15_000, `${taskName}-end`);
   }
