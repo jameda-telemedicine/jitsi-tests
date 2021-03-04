@@ -65,6 +65,10 @@ class JitsiVideoToggleTask extends DefaultTask {
     let muteVideoText = 'Toggle mute video';
     let muteButton: WebElement;
 
+    if (this.args.participants !== 2) {
+      throw new Error(`This task expects to have exactly 2 browsers. Found ${this.args.participants}.`);
+    }
+
     await waitSeconds(initWaitTime + statsWaitTime);
 
     /**
