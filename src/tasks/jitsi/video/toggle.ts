@@ -1,14 +1,26 @@
 import { By, WebElement } from 'selenium-webdriver';
 import { TOOLBOX_BUTTON, VIDEO } from '../../../lib/jitsi/css';
 import {
-  fetchStats, setupStats, updateStats, filterStats, JitsiStatsItemOutboundRtp, isInboundRtp, isVideo, isOutboundRtp,
+  fetchStats, setupStats, updateStats, filterStats, isInboundRtp, isVideo, isOutboundRtp, JitsiStatsItem,
 } from '../../../lib/jitsi/stats';
 import { MUTE_VIDEO } from '../../../lib/jitsi/translations';
 import { wait, waitSeconds } from '../../../lib/time';
+import { SupportedBrowsers } from '../../../types/browsers';
 import DefaultTask from '../../default';
 import { TaskParams } from '../../task';
 
-type StatsValues = { in: number; out: number; };
+type Stats = {
+  stats: number[],
+  increasing: number,
+  stale: number,
+};
+
+type StatsValues = {
+  in: Stats,
+  out: Stats,
+};
+
+type FlatStats = Record<string, JitsiStatsItem[]>;
 
 /**
  * Mute/unmute video.
@@ -29,36 +41,75 @@ class JitsiVideoToggleTask extends DefaultTask {
       throw new Error('Stats are empty.');
     }
 
-    const flatStats = filteredStats.map((s) => s.items).flat();
-    const inboundStats = flatStats
-      .filter(isInboundRtp).filter(isVideo)
-      .map((s) => ({ id: s.id, timestamp: s.timestamp, bytes: s.stat_bytesReceived }));
-    const outboundStats = flatStats
-      .filter(isOutboundRtp).filter(isVideo)
-      .map((s) => ({ id: s.id, timestamp: s.timestamp, bytes: s.stat_bytesSent }));
+    const initialValue: FlatStats = {};
+    const flatStats = filteredStats
+      .map((s) => s.items)
+      .flat()
+      .reduce((previousValue, currentValue) => ({
+        ...previousValue,
+        [`${currentValue.id}`]: [currentValue, ...(previousValue[`${currentValue.id}`] || [])],
+      }), initialValue);
 
-    const inFirst = inboundStats[0].bytes;
-    const inLast = inboundStats[inboundStats.length - 1].bytes;
+    const inStats: number[] = [];
+    const outStats: number[] = [];
 
-    const outFirst = outboundStats[0].bytes;
-    const outLast = outboundStats[outboundStats.length - 1].bytes;
+    Object.entries(flatStats).forEach(([id, flow]) => {
+      const inboundStats = flow
+        .filter(isInboundRtp).filter(isVideo)
+        .map((s) => ({ id: `${s.id}`, timestamp: +(s.timestamp as number), bytes: s.stat_bytesReceived }))
+        .sort((a, b) => a.timestamp - b.timestamp);
+      const outboundStats = flow
+        .filter(isOutboundRtp).filter(isVideo)
+        .map((s) => ({ id: `${s.id}`, timestamp: +(s.timestamp as number), bytes: s.stat_bytesSent }))
+        .sort((a, b) => a.timestamp - b.timestamp);
 
-    const videoStats = {
-      in: inLast - inFirst,
-      out: outLast - outFirst,
+      // ignore this flow if it is not inboud or outbound
+      if (inboundStats.length === 0 && outboundStats.length === 0) {
+        return;
+      }
+
+      // can only be inbound or oubound, not both
+      if (inboundStats.length > 0 && outboundStats.length > 0) {
+        throw new Error('Got inboud and outbound stats for a unique flow.');
+      }
+
+      if (inboundStats.length > 0) {
+        const first = inboundStats[0].bytes;
+        const last = inboundStats[inboundStats.length - 1].bytes;
+        const diff = last - first;
+
+        if (diff < 0) {
+          throw new Error(`Stats#${id}: invalid inboud stats. Got ${diff}, but value should be >= 0.`);
+        }
+
+        inStats.push(diff);
+      }
+
+      if (outboundStats.length > 0) {
+        const first = outboundStats[0].bytes;
+        const last = outboundStats[outboundStats.length - 1].bytes;
+        const diff = last - first;
+
+        if (diff < 0) {
+          throw new Error(`Stats#${id}: invalid outbound stats. Got ${diff}, but value should be >= 0.`);
+        }
+
+        outStats.push(diff);
+      }
+    });
+
+    return {
+      in: {
+        stats: inStats,
+        increasing: inStats.filter((s) => s > 0).length,
+        stale: inStats.filter((s) => s === 0).length,
+      },
+      out: {
+        stats: outStats,
+        increasing: outStats.filter((s) => s > 0).length,
+        stale: outStats.filter((s) => s === 0).length,
+      },
     };
-
-    if (videoStats.in < 0 || videoStats.out < 0) {
-      throw new Error(`Invalid stats: ${JSON.stringify(
-        {
-          videoStats,
-          inboundStats,
-          outboundStats,
-        },
-      )}.`);
-    }
-
-    return videoStats;
   }
 
   async checkVideos(): Promise<number> {
@@ -104,6 +155,12 @@ class JitsiVideoToggleTask extends DefaultTask {
     let muteVideoText = 'Toggle mute video';
     let muteButton: WebElement;
 
+    const unsupportedBrowsers: SupportedBrowsers[] = ['firefox'];
+    const isUnsupported = unsupportedBrowsers.includes(this.args.browser.type);
+    if (isUnsupported) {
+      console.warn(`[jitsi/video/toggle] Warning: some stats checks were disabled on ${this.args.browser.type} (not fully supported).`);
+    }
+
     /**
      * Initialization part.
      */
@@ -135,16 +192,17 @@ class JitsiVideoToggleTask extends DefaultTask {
     /**
      * Initial tests.
      */
-    // let stats = await this.checkStats();
-    // if (stats.in <= 0 || stats.out <= 0) {
-    //   throw new Error(`[Init] Expected to send and receive video bytes. Stats: ${JSON.stringify(stats)}`);
-    // }
+    const initStats = await this.checkStats();
+    console.log('init', isMain, initStats);
+    if (!isUnsupported && initStats.in.increasing < 1 && initStats.out.increasing < 1) {
+      throw new Error(`[Init] Expected to send and receive video bytes. Stats: ${JSON.stringify(initStats)}`);
+    }
     const initialVideoCount = await this.checkVideos();
 
     /**
      * Mute part.
      */
-    await this.synchro(5_000, `${taskName}-mute-start`);
+    await this.synchro(15_000, `${taskName}-mute-start`);
     if (isMain) {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       await this.args.driver.executeScript('arguments[0].click()', muteButton!);
@@ -152,10 +210,22 @@ class JitsiVideoToggleTask extends DefaultTask {
     await this.synchro(15_000, `${taskName}-mute-end`);
 
     await waitSeconds(2);
-    // stats = await this.checkStats();
-    // if (stats.in <= 0 || stats.out <= 0) {
-    //   throw new Error(`[Muted] Expected to send and receive video bytes. Stats: ${JSON.stringify(stats)}`);
-    // }
+    const mutedStats = await this.checkStats();
+    console.log('muted', isMain, mutedStats);
+    if (mutedStats.in.stale < 1 && mutedStats.out.stale < 1) {
+      throw new Error(`[Muted] Expected to send and receive video bytes. Stats: ${JSON.stringify(mutedStats)}`);
+    }
+
+    if (!isUnsupported) {
+      if (isMain) {
+        if (mutedStats.out.increasing >= initStats.out.increasing || mutedStats.out.stale <= initStats.out.stale) {
+          throw new Error('[Muted] Expected to have less increasing outbound flows on main browser.');
+        }
+      } else if (mutedStats.in.increasing >= initStats.in.increasing || mutedStats.in.stale <= initStats.in.stale) {
+        throw new Error('[Muted] Expected to have less increasing inbound flows on non-main browser.');
+      }
+    }
+
     const mutedVideoCount = await this.checkVideos();
     const expectedVideoCount = initialVideoCount - mainCount - 1; // video preview
     if (mutedVideoCount < expectedVideoCount) {
@@ -168,7 +238,7 @@ class JitsiVideoToggleTask extends DefaultTask {
     /**
      * Unmute part.
      */
-    await this.synchro(5_000, `${taskName}-unmute-start`);
+    await this.synchro(15_000, `${taskName}-unmute-start`);
     if (isMain) {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       await this.args.driver.executeScript('arguments[0].click()', muteButton!);
@@ -176,11 +246,33 @@ class JitsiVideoToggleTask extends DefaultTask {
     await this.synchro(15_000, `${taskName}-unmute-end`);
 
     // check if all is working again as at the beginning.
-    await waitSeconds(2);
-    // stats = await this.checkStats();
-    // if (stats.in <= 0 || stats.out <= 0) {
-    //   throw new Error(`[End of test] Expected to send and receive video bytes. Stats: ${JSON.stringify(stats)}`);
-    // }
+    await waitSeconds(5);
+    const endStats = await this.checkStats();
+    console.log('end', isMain, endStats);
+    if (endStats.in.increasing < 1 && endStats.out.increasing < 1) {
+      throw new Error(`[End of test] Expected to send and receive video bytes. Stats: ${JSON.stringify(endStats)}`);
+    }
+
+    // check increasing flows
+    if (!isUnsupported) {
+      if (endStats.in.increasing !== initStats.in.increasing) {
+        throw new Error(`[End of test] Expected ${initStats.in.increasing} but got ${endStats.in.increasing} increasing inboud flows.`);
+      }
+      if (endStats.out.increasing !== initStats.out.increasing) {
+        throw new Error(`[End of test] Expected ${initStats.out.increasing} but got ${endStats.out.increasing} increasing outboud flows.`);
+      }
+    }
+
+    // check stale flows
+    if (!isUnsupported) {
+      if (endStats.in.stale !== initStats.in.stale) {
+        throw new Error(`[End of test] Expected ${initStats.in.stale} but got ${endStats.in.stale} stale inboud flows.`);
+      }
+      if (endStats.out.stale !== initStats.out.stale) {
+        throw new Error(`[End of test] Expected ${initStats.out.stale} but got ${endStats.out.stale} stale outboud flows.`);
+      }
+    }
+
     const unmutedVideoCount = await this.checkVideos();
     if (unmutedVideoCount !== initialVideoCount) {
       throw new Error(`[End of test] Got ${unmutedVideoCount}, but exactly ${initialVideoCount} was expected.`);

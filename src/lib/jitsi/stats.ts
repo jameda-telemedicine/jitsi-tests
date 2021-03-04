@@ -36,42 +36,46 @@ export const isInboundRtp = (x: JitsiStatsItem): x is JitsiStatsItemInboundRtp =
 export const isOutboundRtp = (x: JitsiStatsItem): x is JitsiStatsItemOutboundRtp => x.type === 'outbound-rtp';
 
 export const setupStats = (driver: ThenableWebDriver): Promise<void> => driver.executeScript(`
-    window.updateJitsiStats = () => {
-      for (const pc of APP.conference._room.rtc.peerConnections.values()) {
+  // reset previous stats
+  window.JitsiStats = [];
 
-        pc.peerconnection.getStats(null).then(stats => {
-          const items = [];
+  // function used to update stats
+  window.updateJitsiStats = () => {
+    for (const pc of APP.conference._room.rtc.peerConnections.values()) {
 
-          stats.forEach(report => {
-            let item = {
-              id: report.id,
-              type: report.type,
-              timestamp: report.timestamp,
-            };
+      pc.peerconnection.getStats(null).then(stats => {
+        const items = [];
 
-            Object.keys(report).forEach(statName => {
-              if (!['id', 'timestamp', 'type'].includes(statName)) {
-                const statKey = 'stat_' + statName;
-                item[statKey] = report[statName];
-              }
-            });
+        stats.forEach(report => {
+          let item = {
+            id: report.id,
+            type: report.type,
+            timestamp: report.timestamp,
+          };
 
-            items.push(item);
+          Object.keys(report).forEach(statName => {
+            if (!['id', 'timestamp', 'type'].includes(statName)) {
+              const statKey = 'stat_' + statName;
+              item[statKey] = report[statName];
+            }
           });
 
-          if (!window.JitsiStats) {
-            window.JitsiStats = [];
-          }
-
-          window.JitsiStats.push({
-            id: pc.id,
-            items,
-          });
+          items.push(item);
         });
 
-      }
-    };
-  `);
+        if (!window.JitsiStats) {
+          window.JitsiStats = [];
+        }
+
+        window.JitsiStats.push({
+          id: pc.id,
+          items,
+        });
+      });
+
+    }
+  };
+`);
 
 export const updateStats = (driver: ThenableWebDriver): Promise<void> => driver.executeScript('window.updateJitsiStats();');
 
@@ -85,7 +89,6 @@ export const filterStats = (stats: JitsiStats[]): JitsiStats[] | null => {
   }
 
   return stats
-    .filter((item) => +item.id === 1)
     .map((item) => ({
       ...item,
       items: item.items.filter((stat) => ['inbound-rtp', 'outbound-rtp', 'candidate-pair'].includes(stat.type)),
