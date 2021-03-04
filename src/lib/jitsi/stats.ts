@@ -1,5 +1,32 @@
 import { ThenableWebDriver } from 'selenium-webdriver';
 
+export type Bandwith = {
+  upload: number;
+  download: number;
+};
+
+export type ConferenceStats = {
+  bridgeCount: number,
+  connectionQuality: number,
+  bandwidth: Bandwith,
+  localAvgAudioLevels: unknown,
+  framerate: Record<string, unknown>,
+  serverRegion: unknown,
+  maxEnabledResolution: number,
+  bitrate: {
+    download: number,
+    audio: Bandwith,
+    video: Bandwith,
+    upload: number
+  },
+  transport: Record<string, unknown>,
+  resolution: Record<string, unknown>,
+  codec: Record<string, unknown>,
+  jvbRTT: number,
+  packetLoss: { download: number, total: number, upload: number },
+  avgAudioLevels: unknown
+};
+
 export type JitsiStatsItemBase = {
   id: string | number;
   timestamp: unknown;
@@ -94,3 +121,16 @@ export const filterStats = (stats: JitsiStats[]): JitsiStats[] | null => {
       items: item.items.filter((stat) => ['inbound-rtp', 'outbound-rtp', 'candidate-pair'].includes(stat.type)),
     }));
 };
+
+/**
+ * Get Jitsi Meet calculated statistics
+ *
+ * Notes:
+ *  - should wait ~1min before getting statistics
+ *  - stats are refreshed every ~10sec
+ *
+ * @param {ThenableWebDriver} driver Selenium WebDriver
+ */
+export const getStats = (driver: ThenableWebDriver): Promise<ConferenceStats> => driver.executeScript(`
+  return APP.conference.getStats();
+`);
