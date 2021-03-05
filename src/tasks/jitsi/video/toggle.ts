@@ -113,6 +113,9 @@ class JitsiVideoToggleTask extends DefaultTask {
      * Initial tests.
      */
     let stats = await this.getVideoStats();
+    if (stats.download <= 0) {
+      throw new Error(`[Init] Expected download value to be >0, but got ${stats.download}.`);
+    }
     console.log('init', isMain, stats);
     const initialVideoCount = await this.checkVideos();
 
@@ -128,6 +131,15 @@ class JitsiVideoToggleTask extends DefaultTask {
 
     await waitSeconds(statsWaitTime);
     stats = await this.getVideoStats();
+    if (isMain && stats.upload !== 0) {
+      throw new Error(`[Muted] Expected upload value to be 0, but got ${stats.upload}.`);
+    }
+    if (isMain && stats.download <= 0) {
+      throw new Error(`[Muted] Expected download value to be >0, but got ${stats.download}.`);
+    }
+    if (!isMain && stats.download !== 0) {
+      throw new Error(`[Muted] Expected download value to be 0, but got ${stats.download}.`);
+    }
     console.log('muted', isMain, stats);
 
     const mutedVideoCount = await this.checkVideos();
@@ -152,11 +164,14 @@ class JitsiVideoToggleTask extends DefaultTask {
     // check if all is working again as at the beginning.
     await waitSeconds(statsWaitTime);
     stats = await this.getVideoStats();
+    if (stats.download <= 0) {
+      throw new Error(`[End] Expected download value to be >0, but got ${stats.download}.`);
+    }
     console.log('end', isMain, stats);
 
     const unmutedVideoCount = await this.checkVideos();
     if (unmutedVideoCount !== initialVideoCount) {
-      throw new Error(`[End of test] Got ${unmutedVideoCount}, but exactly ${initialVideoCount} was expected.`);
+      throw new Error(`[End] Got ${unmutedVideoCount}, but exactly ${initialVideoCount} was expected.`);
     }
 
     await this.synchro((statsWaitTime + 15) * 1_000, `${taskName}-end`);
