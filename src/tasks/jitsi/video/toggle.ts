@@ -8,6 +8,8 @@ import { TaskParams } from '../../task';
 
 /**
  * Mute/unmute video.
+ *
+ * @param {boolean} [ignoreVideoMinimum] ignore the miniumum number of videos check (default: false).
  */
 class JitsiVideoToggleTask extends DefaultTask {
   async getVideoStats(): Promise<Bandwith> {
@@ -64,6 +66,8 @@ class JitsiVideoToggleTask extends DefaultTask {
     const isMain = this.args.browser.role === 'main';
     let muteVideoText = 'Toggle mute video';
     let muteButton: WebElement;
+
+    const ignoreVideoMinimum = this.getBooleanArg('ignoreVideoMinimum', false);
 
     if (this.args.participants !== 2) {
       throw new Error(`This task expects to have exactly 2 browsers. Found ${this.args.participants}.`);
@@ -144,7 +148,7 @@ class JitsiVideoToggleTask extends DefaultTask {
 
     const mutedVideoCount = await this.checkVideos();
     const expectedVideoCount = initialVideoCount - mainCount - 1; // video preview
-    if (mutedVideoCount < expectedVideoCount) {
+    if (!ignoreVideoMinimum && mutedVideoCount < expectedVideoCount) {
       throw new Error(`[Muted] Got ${mutedVideoCount} videos, but at least ${expectedVideoCount} was expected.`);
     }
     if (mutedVideoCount >= initialVideoCount) {
