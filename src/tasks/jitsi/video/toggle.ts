@@ -58,7 +58,7 @@ class JitsiVideoToggleTask extends DefaultTask {
     await super.run(params);
 
     const initWaitTime = 60;
-    const statsWaitTime = 10;
+    const statsWaitTime = 12;
     const taskName = `video-toggle-${this.args.taskIndex}`;
     const storageKey = `${taskName}-main-count`;
     const isMain = this.args.browser.role === 'main';
