@@ -101,8 +101,7 @@ class JitsiAudioToggleTask extends DefaultTask {
     /**
      * Initial tests.
      */
-    let stats = await this.getAudioStats();
-    console.log('init', isMain, stats);
+    const initStats = await this.getAudioStats();
 
     /**
      * Mute part.
@@ -115,8 +114,13 @@ class JitsiAudioToggleTask extends DefaultTask {
     await this.synchro(15_000, `${taskName}-mute-end`);
 
     await waitSeconds(statsWaitTime);
-    stats = await this.getAudioStats();
-    console.log('muted', isMain, stats);
+    const mutedStats = await this.getAudioStats();
+    if (!isMain && mutedStats.muted <= initStats.muted) {
+      throw new Error('Expected to have muted audio tracks.');
+    }
+    if (mutedStats.participants !== initStats.participants) {
+      throw new Error('Number of participants should not change during mute.');
+    }
 
     /**
      * Unmute part.
@@ -130,8 +134,13 @@ class JitsiAudioToggleTask extends DefaultTask {
 
     // check if all is working again as at the beginning.
     await waitSeconds(statsWaitTime);
-    stats = await this.getAudioStats();
-    console.log('end', isMain, stats);
+    const endStats = await this.getAudioStats();
+    if (endStats.muted !== initStats.muted) {
+      throw new Error('Expected to have the same amount of muted audio tracks since before the mute.');
+    }
+    if (endStats.participants !== initStats.participants) {
+      throw new Error('Number of participants should not change after mute.');
+    }
 
     await this.synchro((statsWaitTime + 15) * 1_000, `${taskName}-end`);
   }
