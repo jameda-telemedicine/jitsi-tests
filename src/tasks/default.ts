@@ -115,6 +115,19 @@ class DefaultTask implements TaskInterface {
     };
     await this.system.barrier(args);
   }
+
+  /**
+   * Helper to get a Jitsi Meet translation.
+   *
+   * @param {string} translationKey translation key.
+   */
+  async getJitsiTranslation(translationKey: string): Promise<string> {
+    const translation: string = await this.args.driver.executeScript(
+      `return $.i18n.t('${translationKey}');`,
+    );
+
+    return translation || '';
+  }
 }
 
 export default DefaultTask;

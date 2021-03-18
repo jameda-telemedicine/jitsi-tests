@@ -16,9 +16,7 @@ class JitsiScreenshareTask extends DefaultTask {
   async run(params?: TaskParams): Promise<void> {
     await super.run(params);
 
-    const screenshareText = await this.args.driver.executeScript(
-      `return $.i18n.t('${SCREEN_SHARE}');`,
-    );
+    const screenshareText = await this.getJitsiTranslation(SCREEN_SHARE);
 
     this.screenshareButton = await this.args.driver
       .findElement(By.css(`${TOOLBOX_BUTTON}[aria-label="${screenshareText}"]`));
