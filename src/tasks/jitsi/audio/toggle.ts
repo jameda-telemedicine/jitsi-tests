@@ -1,55 +1,78 @@
 import { By, WebElement } from 'selenium-webdriver';
 import { TOOLBOX_BUTTON } from '../../../lib/jitsi/css';
-import { Bandwith, getStats } from '../../../lib/jitsi/stats';
 import { MUTE_AUDIO } from '../../../lib/jitsi/translations';
 import { waitSeconds } from '../../../lib/time';
 import DefaultTask from '../../default';
 import { TaskParams } from '../../task';
 
+type AudioStats = {
+  muted: number;
+  total: number;
+  participants: number;
+};
+
 /**
  * Mute/unmute audio.
  */
 class JitsiAudioToggleTask extends DefaultTask {
-  async getAudioStats(): Promise<Bandwith> {
-    const stats = await getStats(this.args.driver);
-    console.log('===', JSON.stringify(stats));
-    if (!stats.bitrate || !stats.bitrate.audio) {
-      throw new Error('Could not get audio bitrate.');
-    }
+  async setupScript(): Promise<void> {
+    await this.args.driver.executeScript(`
+      if (!Object.prototype.hasOwnProperty.call(window, 'TESTING')) {
+        window.TESTING = {};
+      }
 
-    return stats.bitrate.audio;
+      window.TESTING.getAudioStats = () => {
+        let results = {
+          muted: 0,
+          total: 0,
+          participants: 0,
+        };
+
+        for (const [participantId, participant] of Object.entries(APP.conference._room.participants || {})) {
+          results.participants++;
+
+          const tracks = participant._tracks || [];
+          const audioTracks = tracks.filter(t => t.type === 'audio');
+          const mutedTracks = audioTracks.filter(t => t.muted);
+
+          results.total += audioTracks.length;
+          results.muted += mutedTracks.length;
+        }
+
+        return results;
+      };
+    `);
+  }
+
+  async getAudioStats(): Promise<AudioStats> {
+    const results: AudioStats = await this.args.driver.executeScript(`
+      return window.TESTING.getAudioStats();
+    `);
+
+    return results;
   }
 
   async run(params?: TaskParams): Promise<void> {
     await super.run(params);
 
-    const initWaitTime = 60;
-    const statsWaitTime = 20;
+    const statsWaitTime = 5;
     const taskName = `audio-toggle-${this.args.taskIndex}`;
     const storageKey = `${taskName}-main-count`;
     const isMain = this.args.browser.role === 'main';
     let muteAudioText = 'Toggle mute audio';
     let muteButton: WebElement;
 
-    if (this.args.participants !== 2) {
-      throw new Error(`This task expects to have exactly 2 browsers. Found ${this.args.participants}.`);
+    if (this.args.participants < 2) {
+      throw new Error(`This task expects to have at least 2 browsers. Found ${this.args.participants}.`);
     }
 
-    // refresh statistic values more often
-    await this.args.driver.executeScript(`
-      for (const s of APP.conference._room.statistics.rtpStatsMap.values()) {
-        s.stop();
-        s.statsIntervalMilis = 200;
-        s.start();
-      }
-    `);
-
-    await waitSeconds(initWaitTime + statsWaitTime);
+    await waitSeconds(statsWaitTime);
 
     /**
      * Initialization part.
      */
-    await this.synchro((initWaitTime + statsWaitTime + 15) * 1_000, `${taskName}-init`);
+    await this.synchro((statsWaitTime + 10) * 1_000, `${taskName}-init`);
+    await this.setupScript();
 
     // only do some initializations on browsers with "main" role
     if (isMain) {
@@ -79,9 +102,6 @@ class JitsiAudioToggleTask extends DefaultTask {
      * Initial tests.
      */
     let stats = await this.getAudioStats();
-    // if (stats.download <= 0) {
-    //   throw new Error(`[Init] Expected download value to be >0, but got ${stats.download}.`);
-    // }
     console.log('init', isMain, stats);
 
     /**
@@ -96,15 +116,6 @@ class JitsiAudioToggleTask extends DefaultTask {
 
     await waitSeconds(statsWaitTime);
     stats = await this.getAudioStats();
-    // if (isMain && stats.upload !== 0) {
-    //   throw new Error(`[Muted] Expected upload value to be 0, but got ${stats.upload}.`);
-    // }
-    // if (isMain && stats.download <= 0) {
-    //   throw new Error(`[Muted] Expected download value to be >0, but got ${stats.download}.`);
-    // }
-    // if (!isMain && stats.download !== 0) {
-    //   throw new Error(`[Muted] Expected download value to be 0, but got ${stats.download}.`);
-    // }
     console.log('muted', isMain, stats);
 
     /**
@@ -120,9 +131,6 @@ class JitsiAudioToggleTask extends DefaultTask {
     // check if all is working again as at the beginning.
     await waitSeconds(statsWaitTime);
     stats = await this.getAudioStats();
-    // if (stats.download <= 0) {
-    //   throw new Error(`[End] Expected download value to be >0, but got ${stats.download}.`);
-    // }
     console.log('end', isMain, stats);
 
     await this.synchro((statsWaitTime + 15) * 1_000, `${taskName}-end`);
