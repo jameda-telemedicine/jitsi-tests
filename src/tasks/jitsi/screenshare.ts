@@ -1,5 +1,4 @@
-import { By, WebElement } from 'selenium-webdriver';
-import { TOOLBOX_BUTTON } from '../../lib/jitsi/css';
+import { WebElement } from 'selenium-webdriver';
 import { SCREEN_SHARE } from '../../lib/jitsi/translations';
 import { waitSeconds } from '../../lib/time';
 import DefaultTask from '../default';
@@ -17,9 +16,7 @@ class JitsiScreenshareTask extends DefaultTask {
     await super.run(params);
 
     const screenshareText = await this.getJitsiTranslation(SCREEN_SHARE);
-
-    this.screenshareButton = await this.args.driver
-      .findElement(By.css(`${TOOLBOX_BUTTON}[aria-label="${screenshareText}"]`));
+    this.screenshareButton = await this.getJitsiToolboxButton(screenshareText);
 
     await this.toogleScreenshare();
     await this.toogleScreenshare();

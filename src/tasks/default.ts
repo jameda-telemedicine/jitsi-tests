@@ -1,3 +1,5 @@
+import { By, WebElement } from 'selenium-webdriver';
+import { TOOLBOX_BUTTON } from '../lib/jitsi/css';
 import { BarrierArgs } from '../lib/synchro';
 import { waitSeconds } from '../lib/time';
 import {
@@ -127,6 +129,18 @@ class DefaultTask implements TaskInterface {
     );
 
     return translation || '';
+  }
+
+  /**
+   * Helper to get a Jitsi Meet button from the toolbox.
+   *
+   * @param ariaLabel aria-label value of the specific button.
+   */
+  async getJitsiToolboxButton(ariaLabel: string): Promise<WebElement> {
+    const button: WebElement = await this.args.driver
+      .findElement(By.css(`${TOOLBOX_BUTTON}[aria-label="${ariaLabel}"]`));
+
+    return button;
   }
 }
 
