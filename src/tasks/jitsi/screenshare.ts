@@ -1,15 +1,15 @@
 import { WebElement } from 'selenium-webdriver';
 import { SCREEN_SHARE } from '../../lib/jitsi/translations';
 import { waitSeconds } from '../../lib/time';
-import DefaultTask from '../default';
 import { TaskParams } from '../task';
+import JitsiTask from './jitsi';
 
-class JitsiScreenshareTask extends DefaultTask {
+class JitsiScreenshareTask extends JitsiTask {
   screenshareButton?: WebElement;
 
   async toogleScreenshare(): Promise<void> {
     await this.args.driver.executeScript('arguments[0].click()', this.screenshareButton);
-    await waitSeconds(5);
+    await waitSeconds(2);
   }
 
   async run(params?: TaskParams): Promise<void> {
