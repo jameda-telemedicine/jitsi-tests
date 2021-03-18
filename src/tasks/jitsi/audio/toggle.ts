@@ -1,9 +1,8 @@
-import { By, WebElement } from 'selenium-webdriver';
-import { TOOLBOX_BUTTON } from '../../../lib/jitsi/css';
+import { WebElement } from 'selenium-webdriver';
 import { MUTE_AUDIO } from '../../../lib/jitsi/translations';
 import { waitSeconds } from '../../../lib/time';
-import DefaultTask from '../../default';
 import { TaskParams } from '../../task';
+import JitsiTask from '../jitsi';
 
 type AudioStats = {
   muted: number;
@@ -14,7 +13,11 @@ type AudioStats = {
 /**
  * Mute/unmute audio.
  */
-class JitsiAudioToggleTask extends DefaultTask {
+class JitsiAudioToggleTask extends JitsiTask {
+  muteButton?: WebElement;
+
+  muteAudioText = 'Toggle mute audio';
+
   async setupScript(): Promise<void> {
     await this.args.driver.executeScript(`
       if (!Object.prototype.hasOwnProperty.call(window, 'TESTING')) {
@@ -59,8 +62,6 @@ class JitsiAudioToggleTask extends DefaultTask {
     const taskName = `audio-toggle-${this.args.taskIndex}`;
     const storageKey = `${taskName}-main-count`;
     const isMain = this.args.browser.role === 'main';
-    let muteAudioText = 'Toggle mute audio';
-    let muteButton: WebElement;
 
     if (this.args.participants < 2) {
       throw new Error(`This task expects to have at least 2 browsers. Found ${this.args.participants}.`);
@@ -76,12 +77,8 @@ class JitsiAudioToggleTask extends DefaultTask {
 
     // only do some initializations on browsers with "main" role
     if (isMain) {
-      muteAudioText = await this.args.driver.executeScript(
-        `return $.i18n.t('${MUTE_AUDIO}');`,
-      );
-
-      muteButton = await this.args.driver
-        .findElement(By.css(`${TOOLBOX_BUTTON}[aria-label="${muteAudioText}"]`));
+      this.muteAudioText = await this.getJitsiTranslation(MUTE_AUDIO);
+      this.muteButton = await this.getJitsiToolboxButton(this.muteAudioText);
 
       // used to know the number of main browsers
       const mainCount = +(this.system.storage.get(storageKey) || 0) + 1;
@@ -109,7 +106,7 @@ class JitsiAudioToggleTask extends DefaultTask {
     await this.synchro(15_000, `${taskName}-mute-start`);
     if (isMain) {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      await this.args.driver.executeScript('arguments[0].click()', muteButton!);
+      await this.args.driver.executeScript('arguments[0].click()', this.muteButton);
     }
     await this.synchro(15_000, `${taskName}-mute-end`);
 
@@ -128,7 +125,7 @@ class JitsiAudioToggleTask extends DefaultTask {
     await this.synchro((statsWaitTime + 15) * 1_000, `${taskName}-unmute-start`);
     if (isMain) {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      await this.args.driver.executeScript('arguments[0].click()', muteButton!);
+      await this.args.driver.executeScript('arguments[0].click()', this.muteButton);
     }
     await this.synchro(15_000, `${taskName}-unmute-end`);
 
