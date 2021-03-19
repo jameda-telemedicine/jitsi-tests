@@ -131,7 +131,7 @@ class JitsiAudioToggleTask extends JitsiTask {
     await waitSeconds(statsWaitTime);
     const endStats = await this.getAudioStats();
     if (endStats.muted !== initStats.muted) {
-      throw new Error('Expected to have the same amount of muted audio tracks since before the mute.');
+      throw new Error('Expected to have the same amount of muted audio tracks as before the mute.');
     }
     if (endStats.participants !== initStats.participants) {
       throw new Error('Number of participants should not change after mute.');
