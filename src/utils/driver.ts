@@ -1,4 +1,4 @@
-import { Capabilities } from 'selenium-webdriver';
+import { Builder, Capabilities } from 'selenium-webdriver';
 import { basicAuthUrl } from './url';
 import {
   Firefox, Chrome, Safari, Edge,
@@ -60,4 +60,20 @@ export const initDriver = (browser: InternalBrowser): InitializedBrowser => {
   }
 
   return initializedBrowser;
+};
+
+// get builder with a set of capabilities
+export const builderWithCapabilities = (capabilities?: Capabilities): Builder => {
+  const builder = new Builder();
+
+  if (capabilities) {
+    return builder.withCapabilities({
+      ...capabilities,
+      'browserstack.idleTimeout': 200,
+    });
+  }
+
+  return builder.withCapabilities({
+    'browserstack.idleTimeout': 200,
+  });
 };

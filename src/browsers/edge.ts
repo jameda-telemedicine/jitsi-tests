@@ -2,6 +2,7 @@ import type { Options } from 'selenium-webdriver/chrome';
 import { Builder, Capabilities } from 'selenium-webdriver';
 import browser from 'selenium-webdriver/edge';
 import { BrowserConfig } from '../types/browsers';
+import { builderWithCapabilities } from '../utils/driver';
 
 const browserName = 'MicrosoftEdge';
 
@@ -12,13 +13,11 @@ const fetchBuilder = (config: BrowserConfig, capabilities?: Capabilities): Build
     'use-fake-ui-for-media-stream',
   );
 
-  let builder = new Builder();
-  if (capabilities) {
-    builder = builder.withCapabilities(capabilities);
-  }
+  const builder = builderWithCapabilities(capabilities);
   if (config.headless) {
     options.headless();
   }
+
   return builder.forBrowser(browserName).setEdgeOptions(options);
 };
 
