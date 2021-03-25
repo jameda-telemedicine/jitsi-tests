@@ -10,6 +10,8 @@ import { TaskParams } from '../../task';
  * Mute/unmute video.
  *
  * @param {boolean} [ignoreVideoMinimum] ignore the miniumum number of videos check (default: false).
+ * @param {boolean} [ignoreVideoStats] ignore all checks on video statistics (default: false).
+ * @param {boolean} [ignoreVideoCount] ignore all checks on the number of videos (default: false).
  */
 class JitsiVideoToggleTask extends DefaultTask {
   async getVideoStats(): Promise<Bandwith> {
@@ -68,6 +70,8 @@ class JitsiVideoToggleTask extends DefaultTask {
     let muteButton: WebElement;
 
     const ignoreVideoMinimum = this.getBooleanArg('ignoreVideoMinimum', false);
+    const ignoreVideoStats = this.getBooleanArg('ignoreVideoStats', false);
+    const ignoreVideoCount = this.getBooleanArg('ignoreVideoCount', false);
 
     if (this.args.participants !== 2) {
       throw new Error(`This task expects to have exactly 2 browsers. Found ${this.args.participants}.`);
@@ -117,10 +121,10 @@ class JitsiVideoToggleTask extends DefaultTask {
      * Initial tests.
      */
     let stats = await this.getVideoStats();
-    if (stats.download <= 0) {
+    console.log('init', isMain, stats);
+    if (!ignoreVideoStats && stats.download <= 0) {
       throw new Error(`[Init] Expected download value to be >0, but got ${stats.download}.`);
     }
-    console.log('init', isMain, stats);
     const initialVideoCount = await this.checkVideos();
 
     /**
@@ -135,24 +139,28 @@ class JitsiVideoToggleTask extends DefaultTask {
 
     await waitSeconds(statsWaitTime);
     stats = await this.getVideoStats();
-    if (isMain && stats.upload !== 0) {
-      throw new Error(`[Muted] Expected upload value to be 0, but got ${stats.upload}.`);
-    }
-    if (isMain && stats.download <= 0) {
-      throw new Error(`[Muted] Expected download value to be >0, but got ${stats.download}.`);
-    }
-    if (!isMain && stats.download !== 0) {
-      throw new Error(`[Muted] Expected download value to be 0, but got ${stats.download}.`);
-    }
     console.log('muted', isMain, stats);
+    if (!ignoreVideoStats) {
+      if (isMain && stats.upload !== 0) {
+        throw new Error(`[Muted] Expected upload value to be 0, but got ${stats.upload}.`);
+      }
+      if (isMain && stats.download <= 0) {
+        throw new Error(`[Muted] Expected download value to be >0, but got ${stats.download}.`);
+      }
+      if (!isMain && stats.download !== 0) {
+        throw new Error(`[Muted] Expected download value to be 0, but got ${stats.download}.`);
+      }
+    }
 
     const mutedVideoCount = await this.checkVideos();
     const expectedVideoCount = initialVideoCount - mainCount - 1; // video preview
-    if (!ignoreVideoMinimum && mutedVideoCount < expectedVideoCount) {
-      throw new Error(`[Muted] Got ${mutedVideoCount} videos, but at least ${expectedVideoCount} was expected.`);
-    }
-    if (mutedVideoCount >= initialVideoCount) {
-      throw new Error(`[Muted] Got ${mutedVideoCount} videos ; no video was muted.`);
+    if (!ignoreVideoCount) {
+      if (!ignoreVideoMinimum && mutedVideoCount < expectedVideoCount) {
+        throw new Error(`[Muted] Got ${mutedVideoCount} videos, but at least ${expectedVideoCount} was expected.`);
+      }
+      if (mutedVideoCount >= initialVideoCount) {
+        throw new Error(`[Muted] Got ${mutedVideoCount} videos ; no video was muted.`);
+      }
     }
 
     /**
@@ -168,13 +176,13 @@ class JitsiVideoToggleTask extends DefaultTask {
     // check if all is working again as at the beginning.
     await waitSeconds(statsWaitTime);
     stats = await this.getVideoStats();
-    if (stats.download <= 0) {
+    console.log('end', isMain, stats);
+    if (!ignoreVideoStats && stats.download <= 0) {
       throw new Error(`[End] Expected download value to be >0, but got ${stats.download}.`);
     }
-    console.log('end', isMain, stats);
 
     const unmutedVideoCount = await this.checkVideos();
-    if (unmutedVideoCount !== initialVideoCount) {
+    if (!ignoreVideoCount && unmutedVideoCount !== initialVideoCount) {
       throw new Error(`[End] Got ${unmutedVideoCount}, but exactly ${initialVideoCount} was expected.`);
     }
 
