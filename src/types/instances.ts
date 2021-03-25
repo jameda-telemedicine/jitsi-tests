@@ -25,6 +25,7 @@ export type InternalJitsiInstance = BaseJitsiInstance & {
   jwt: string;
   room: string;
   randomSuffix: boolean;
+  suffixed: boolean;
 };
 
 export type Instance = JitsiInstance;

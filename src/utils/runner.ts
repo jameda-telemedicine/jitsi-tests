@@ -140,7 +140,8 @@ const runTest = async (test: InternalTest, report: any) => {
   const { scenario, instance } = test;
   const { room } = instance;
 
-  if (instance.randomSuffix) {
+  if (!instance.suffixed && instance.randomSuffix) {
+    instance.suffixed = true;
     let randomSuffix = '';
     if (!room.endsWith('-')) {
       randomSuffix = '-';
@@ -201,7 +202,7 @@ export const runTests = async (tests: InternalTest[]): Promise<void> => {
     if (testStats.failure > 0) {
       if (test.instance.randomSuffix) {
         console.error(
-          `  --> some tests failed`,
+          '  --> some tests failed',
         );
       } else {
         console.error(

@@ -189,6 +189,7 @@ const resolveInstances = (instances: Instance[]): InternalInstance[] => instance
     jwt: resolveDynamicString(instance.jwt || ''),
     room: roomName,
     randomSuffix,
+    suffixed: false,
   };
 });
 
