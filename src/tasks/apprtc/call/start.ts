@@ -1,4 +1,5 @@
 import { By, WebElement } from 'selenium-webdriver';
+import { waitSeconds } from '../../../lib/time';
 import { TaskParams } from '../../task';
 import ApprtcTask from '../apprtc';
 
@@ -11,6 +12,8 @@ class ApprtcCallStartTask extends ApprtcTask {
     );
 
     await this.args.driver.executeScript('arguments[0].click()', button);
+    await waitSeconds(2);
+    await this.synchro(15_000);
   }
 }
 

@@ -8,6 +8,8 @@ class ApprtcCallEndTask extends ApprtcTask {
     await this.args.driver.executeScript(`
       window.appController.hangup_();
     `);
+
+    await this.synchro(15_000);
   }
 }
 
