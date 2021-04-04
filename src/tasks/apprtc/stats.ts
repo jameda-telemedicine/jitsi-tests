@@ -54,39 +54,48 @@ const transformStats = (stats: JitsiStatsItem[]): TransformedStatResult => {
 class ApprtcStatsTask extends ApprtcTask {
   async fetchStats(): Promise<JitsiStatsItem[]> {
     const stats: JitsiStatsItem[] = await this.args.driver.executeScript(`
-      return window.appController.call_.pcClient_.pc_.getStats(null).then(stats => {
-        const items = [];
+      if (
+        !window.appController
+        || !window.appController.call_
+        || !window.appController.call_.pcClient_
+        || !window.appController.call_.pcClient_.pc_
+      ) {
+        return [];
+      } else {
+        return window.appController.call_.pcClient_.pc_.getStats(null).then(stats => {
+          const items = [];
 
-        const filterType = ['outbound-rtp', 'inbound-rtp'];
-        const filterStat = ['bytesSent', 'kind', 'mediaType', 'bytesReceived'];
-        const filterKind = ['video'];
+          const filterType = ['outbound-rtp', 'inbound-rtp'];
+          const filterStat = ['bytesSent', 'kind', 'mediaType', 'bytesReceived'];
+          const filterKind = ['video'];
 
-        stats.forEach(report => {
-          if (!filterType.includes(report.type) || !filterKind.includes(report.kind)) {
-            return;
-          }
-
-          let item = {
-            id: report.id,
-            type: report.type,
-            kind: report.kind,
-            timestamp: report.timestamp,
-          };
-
-          Object.keys(report).forEach(statName => {
-            if (
-              !['id', 'timestamp', 'type', 'kind'].includes(statName)
-            && filterStat.includes(statName)
-            ) {
-              item[statName] = report[statName];
+          stats.forEach(report => {
+            if (!filterType.includes(report.type) || !filterKind.includes(report.kind)) {
+              return;
             }
+
+            let item = {
+              id: report.id,
+              type: report.type,
+              kind: report.kind,
+              timestamp: report.timestamp,
+            };
+
+            Object.keys(report).forEach(statName => {
+              if (
+                !['id', 'timestamp', 'type', 'kind'].includes(statName)
+              && filterStat.includes(statName)
+              ) {
+                item[statName] = report[statName];
+              }
+            });
+
+            items.push(item);
           });
 
-          items.push(item);
+          return items;
         });
-
-        return items;
-      });
+      }
     `);
 
     return stats;
@@ -95,6 +104,8 @@ class ApprtcStatsTask extends ApprtcTask {
   async run(params?: TaskParams): Promise<void> {
     await super.run(params);
     await waitSeconds(5);
+
+    await this.synchro(15_000);
 
     const stats: TransformedStatResult[] = [];
 
