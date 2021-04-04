@@ -1,4 +1,5 @@
 import fs from 'fs';
+import path from 'path';
 import DefaultTask from '../default';
 import { TaskParams } from '../task';
 
@@ -9,7 +10,11 @@ class DebugScreenshotTask extends DefaultTask {
     const { browser, driver } = this.args;
     const browserName = browser.name;
     const timestamp = Date.now();
-    const fileName = `./out/screenshots/${timestamp}_${browserName}.png`;
+    const dirname = path.resolve();
+    const directory = path.resolve(dirname, './out/screenshots');
+    const fileName = `${directory}/${timestamp}_${browserName}.png`;
+    fs.mkdir(directory, { recursive: true }, () => {});
+
     const image = await driver.takeScreenshot();
 
     await fs.promises.writeFile(fileName, image, 'base64');
