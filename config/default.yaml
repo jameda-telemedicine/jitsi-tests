@@ -48,12 +48,7 @@ scenarios:
           timeout: 5000 # 5 seconds
 
       # click on the hangup button
-      - jitsi/hangup
-
-      # wait that all browsers are at this point
-      - synchro:
-          name: wait-end
-          timeout: 15000 # 15 seconds
+      - jitsi/call/end
 
 tests:
   - name: Chrome - Chrome
