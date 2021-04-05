@@ -115,6 +115,22 @@ class DefaultTask implements TaskInterface {
     };
     await this.system.barrier(args);
   }
+
+  /**
+   * Helper to use the barrier library.
+   *
+   * @param {string} [prefix] prefix of the synchronization barrier.
+   * @param {number} [timeout=1000] time before timeout in milliseconds.
+   * @param {number} [counter] exact number of barrier call.
+   */
+  async synchroPrefix(prefix: string, timeout?: number, counter?: number): Promise<void> {
+    const args: BarrierArgs = {
+      timeout: timeout || 1_000,
+      name: `synchro-prefix-${prefix}-${this.args.taskIndex}`,
+      counter: counter || this.args.participants,
+    };
+    await this.system.barrier(args);
+  }
 }
 
 export default DefaultTask;
