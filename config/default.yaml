@@ -8,28 +8,23 @@ instances:
     url: https://meet.jit.si/
     room:
       name: jitsi-tests-room
+      randomSuffix: true
 
 scenarios:
   - name: Jitsi Meet Base
     tasks:
-      # wait that all browser are at this point before continuing
-      - synchro:
-          name: wait-init
-          timeout: 120000 # 2 minutes
+      # start a Jitsi Meet call (fill display name if required)
+      - jitsi/call/start:
+          # timeout for waiting all other browsers
+          timeout: 60000
 
-      # fill display name if required
-      - jitsi/prejoin:
-          required: false
-      - jitsi/prompt:
-          required: false
+          # check for a prejoin page, but not required to have one
+          prejoin: true
+          prejoinRequired: false
 
-      # force the display of the toolbox (all buttons at the bottom)
-      - jitsi/toolbox
-
-      # wait that all browsers have set their display name
-      - synchro:
-          name: wait-display-name
-          timeout: 5000 # 5 seconds
+          # check for a display name prompt, but not required to have one
+          prompt: true
+          promptRequired: false
 
       # some checks on videos
       - jitsi/video/number:

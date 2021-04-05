@@ -12,6 +12,7 @@ export type TaskObject = {
 export type TaskSystem = {
   barrier: (args: BarrierArgs) => BarrierPromise;
   storage: Map<string, string>;
+  defaultTimeout: number;
 };
 
 export type TaskArgs = {
@@ -133,5 +134,6 @@ export const createTaskSystem = (): TaskSystem => {
   return {
     barrier,
     storage,
+    defaultTimeout: 30_000,
   };
 };

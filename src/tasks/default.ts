@@ -109,7 +109,7 @@ class DefaultTask implements TaskInterface {
    */
   async synchro(timeout?: number, name?: string, counter?: number): Promise<void> {
     const args: BarrierArgs = {
-      timeout: timeout || 1_000,
+      timeout: timeout || this.system.defaultTimeout,
       name: name || `synchro-task-${this.args.taskIndex}`,
       counter: counter || this.args.participants,
     };
@@ -117,15 +117,15 @@ class DefaultTask implements TaskInterface {
   }
 
   /**
-   * Helper to use the barrier library.
+   * Helper to use the barrier library using a prefixed name.
    *
-   * @param {string} [prefix] prefix of the synchronization barrier.
+   * @param {string} [prefix] prefix of the synchronization barrier name.
    * @param {number} [timeout=1000] time before timeout in milliseconds.
    * @param {number} [counter] exact number of barrier call.
    */
   async synchroPrefix(prefix: string, timeout?: number, counter?: number): Promise<void> {
     const args: BarrierArgs = {
-      timeout: timeout || 1_000,
+      timeout: timeout || this.system.defaultTimeout,
       name: `synchro-prefix-${prefix}-${this.args.taskIndex}`,
       counter: counter || this.args.participants,
     };
