@@ -6,7 +6,7 @@ class JitsiCallEndTask extends JitsiTask {
   async run(params?: TaskParams): Promise<void> {
     await super.run(params);
 
-    this.synchroPrefix('jitsi-call-end-start');
+    await this.synchroPrefix('jitsi-call-end-start');
 
     const endCallText = await this.getJitsiTranslation(HANGUP_BUTTON);
     const hangupButton = await this.getJitsiToolboxButton(endCallText);
@@ -16,7 +16,7 @@ class JitsiCallEndTask extends JitsiTask {
       hangupButton,
     );
 
-    this.synchroPrefix('jitsi-call-end-end');
+    await this.synchroPrefix('jitsi-call-end-end');
   }
 }
 

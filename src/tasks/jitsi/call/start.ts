@@ -78,20 +78,20 @@ class JitsiCallStartTask extends JitsiTask {
 
     const timeout = this.getNumericArg('timeout', 120_000);
 
-    this.synchroPrefix('jitsi-call-start-start', timeout);
+    await this.synchroPrefix('jitsi-call-start-start', timeout);
 
     await this.handlePrejoinPage();
     await this.handleDisplayNamePrompt();
     await waitSeconds(2);
 
-    this.synchroPrefix('jitsi-call-start-display-name-set');
+    await this.synchroPrefix('jitsi-call-start-display-name-set');
 
     // set toolbar always visible
     await this.args.driver.executeScript(
       "APP.store.dispatch({ type: 'SET_TOOLBOX_ALWAYS_VISIBLE', alwaysVisible: true });",
     );
 
-    this.synchroPrefix('jitsi-call-start-end');
+    await this.synchroPrefix('jitsi-call-start-end');
   }
 }
 
