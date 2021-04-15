@@ -63,7 +63,7 @@ class JitsiScreenshareTask extends JitsiTask {
       this.system.storage.set(storageKey, 'yes');
     }
 
-    await this.synchro(15_000, `${this.taskName}-browser-check`);
+    await this.synchro(30_000, `${this.taskName}-browser-check`);
 
     const unsupported = this.system.storage.get(storageKey);
 
@@ -82,7 +82,7 @@ class JitsiScreenshareTask extends JitsiTask {
 
     await this.setupScript();
 
-    await this.synchro(15_000, `${this.taskName}-init`);
+    await this.synchro(30_000, `${this.taskName}-init`);
 
     const hasUnsupportedBrowsers = await this.hasUnsupportedBrowsers();
     if (hasUnsupportedBrowsers) {
@@ -97,7 +97,7 @@ class JitsiScreenshareTask extends JitsiTask {
 
     await this.toogleScreenshare();
 
-    await this.synchro(15_000, `${this.taskName}-screensharing`);
+    await this.synchro(30_000, `${this.taskName}-screensharing`);
     const screenshareStats = await this.getScreenshareStats();
     if (screenshareStats.screenshare <= initStats.screenshare) {
       throw new Error('Expected to have more screensharing tracks.');
@@ -108,7 +108,7 @@ class JitsiScreenshareTask extends JitsiTask {
 
     await this.toogleScreenshare();
 
-    await this.synchro(15_000, `${this.taskName}-results`);
+    await this.synchro(30_000, `${this.taskName}-results`);
     const endStats = await this.getScreenshareStats();
     if (endStats.screenshare !== initStats.screenshare) {
       throw new Error('Expected to have the same amount of screenshares as before the screenshare.');
@@ -117,7 +117,7 @@ class JitsiScreenshareTask extends JitsiTask {
       throw new Error('Number of participants should not change after screenshare.');
     }
 
-    await this.synchro(15_000, `${this.taskName}-end`);
+    await this.synchro(30_000, `${this.taskName}-end`);
   }
 }
 

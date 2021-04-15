@@ -12,8 +12,8 @@ class ApprtcCallStartTask extends ApprtcTask {
     );
 
     await this.args.driver.executeScript('arguments[0].click()', button);
-    await waitSeconds(2);
-    await this.synchro(15_000);
+    await waitSeconds(5);
+    await this.synchro(30_000);
   }
 }
 

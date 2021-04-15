@@ -120,17 +120,37 @@ class JitsiVideoToggleTask extends DefaultTask {
     /**
      * Initial tests.
      */
-    let stats = await this.getVideoStats();
-    console.log('init', isMain, stats);
-    if (!ignoreVideoStats && stats.download <= 0) {
-      throw new Error(`[Init] Expected download value to be >0, but got ${stats.download}.`);
+    let stats;
+    let retries;
+    let statsFailure;
+
+    if (!ignoreVideoStats) {
+      retries = 6;
+      statsFailure = true;
+
+      while (retries >= 0) {
+        stats = await this.getVideoStats();
+        console.log('init', isMain, stats);
+
+        if (stats.download > 0) {
+          statsFailure = false;
+          break;
+        }
+        await waitSeconds(5);
+        retries -= 1;
+      }
+
+      if (statsFailure) {
+        throw new Error(`[Init] Expected download value to be >0, but got ${stats?.download}.`);
+      }
     }
+
     const initialVideoCount = await this.checkVideos();
 
     /**
      * Mute part.
      */
-    await this.synchro(15_000, `${taskName}-mute-start`);
+    await this.synchro(60_000, `${taskName}-mute-start`);
     if (isMain) {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       await this.args.driver.executeScript('arguments[0].click()', muteButton!);
@@ -138,17 +158,33 @@ class JitsiVideoToggleTask extends DefaultTask {
     await this.synchro(15_000, `${taskName}-mute-end`);
 
     await waitSeconds(statsWaitTime);
-    stats = await this.getVideoStats();
-    console.log('muted', isMain, stats);
+
     if (!ignoreVideoStats) {
-      if (isMain && stats.upload !== 0) {
-        throw new Error(`[Muted] Expected upload value to be 0, but got ${stats.upload}.`);
+      retries = 6;
+      statsFailure = true;
+
+      while (retries >= 0) {
+        stats = await this.getVideoStats();
+        console.log('muted', isMain, stats);
+
+        if ((isMain && stats.upload === 0 && stats.download > 0) || (!isMain && stats.download === 0)) {
+          statsFailure = false;
+          break;
+        }
+        await waitSeconds(5);
+        retries -= 1;
       }
-      if (isMain && stats.download <= 0) {
-        throw new Error(`[Muted] Expected download value to be >0, but got ${stats.download}.`);
-      }
-      if (!isMain && stats.download !== 0) {
-        throw new Error(`[Muted] Expected download value to be 0, but got ${stats.download}.`);
+
+      if (statsFailure) {
+        if (isMain && stats?.upload !== 0) {
+          throw new Error(`[Muted] Expected upload value to be 0, but got ${stats?.upload}.`);
+        }
+        if (isMain && (!stats || stats.download <= 0)) {
+          throw new Error(`[Muted] Expected download value to be >0, but got ${stats?.download}.`);
+        }
+        if (!isMain && stats?.download !== 0) {
+          throw new Error(`[Muted] Expected download value to be 0, but got ${stats?.download}.`);
+        }
       }
     }
 
@@ -158,7 +194,9 @@ class JitsiVideoToggleTask extends DefaultTask {
       if (!ignoreVideoMinimum && mutedVideoCount < expectedVideoCount) {
         throw new Error(`[Muted] Got ${mutedVideoCount} videos, but at least ${expectedVideoCount} was expected.`);
       }
-      if (mutedVideoCount >= initialVideoCount) {
+
+      // only check the number of videos in the non-main browser
+      if (!isMain && mutedVideoCount >= initialVideoCount) {
         throw new Error(`[Muted] Got ${mutedVideoCount} videos ; no video was muted.`);
       }
     }
@@ -166,7 +204,7 @@ class JitsiVideoToggleTask extends DefaultTask {
     /**
      * Unmute part.
      */
-    await this.synchro((statsWaitTime + 15) * 1_000, `${taskName}-unmute-start`);
+    await this.synchro((statsWaitTime + 60) * 1_000, `${taskName}-unmute-start`);
     if (isMain) {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       await this.args.driver.executeScript('arguments[0].click()', muteButton!);
@@ -175,18 +213,48 @@ class JitsiVideoToggleTask extends DefaultTask {
 
     // check if all is working again as at the beginning.
     await waitSeconds(statsWaitTime);
-    stats = await this.getVideoStats();
-    console.log('end', isMain, stats);
-    if (!ignoreVideoStats && stats.download <= 0) {
-      throw new Error(`[End] Expected download value to be >0, but got ${stats.download}.`);
+
+    if (!ignoreVideoStats) {
+      retries = 6;
+      statsFailure = true;
+
+      while (retries >= 0) {
+        stats = await this.getVideoStats();
+        console.log('end', isMain, stats);
+
+        if (stats.download > 0) {
+          statsFailure = false;
+          break;
+        }
+        await waitSeconds(5);
+        retries -= 1;
+      }
+
+      if (statsFailure) {
+        throw new Error(`[End] Expected download value to be >0, but got ${stats?.download}.`);
+      }
     }
 
-    const unmutedVideoCount = await this.checkVideos();
-    if (!ignoreVideoCount && unmutedVideoCount !== initialVideoCount) {
+    let unmutedVideoCount = await this.checkVideos();
+    retries = 4;
+    statsFailure = true;
+
+    do {
+      if (unmutedVideoCount === initialVideoCount) {
+        statsFailure = false;
+        break;
+      }
+
+      await waitSeconds(5);
+      unmutedVideoCount = await this.checkVideos();
+      retries -= 1;
+    } while (retries >= 0);
+
+    if (statsFailure) {
       throw new Error(`[End] Got ${unmutedVideoCount}, but exactly ${initialVideoCount} was expected.`);
     }
 
-    await this.synchro((statsWaitTime + 15) * 1_000, `${taskName}-end`);
+    await this.synchro((statsWaitTime + 60) * 1_000, `${taskName}-end`);
   }
 }
 
