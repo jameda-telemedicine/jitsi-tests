@@ -58,7 +58,7 @@ class JitsiAudioToggleTask extends JitsiTask {
   async run(params?: TaskParams): Promise<void> {
     await super.run(params);
 
-    const statsWaitTime = 2;
+    const statsWaitTime = 5;
     const taskName = `audio-toggle-${this.args.taskIndex}`;
     const storageKey = `${taskName}-main-count`;
     const isMain = this.args.browser.role === 'main';
